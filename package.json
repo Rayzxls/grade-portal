@@ -1,0 +1,20 @@
+{
+  "name": "grade-portal",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "db:migrate": "pnpm --filter @grade/database migrate",
+    "db:seed": "pnpm --filter @grade/database seed",
+    "db:studio": "pnpm --filter @grade/database studio"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.0",
+    "typescript": "^5.5.0"
+  }
+}

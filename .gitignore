@@ -1,0 +1,31 @@
+node_modules/
+.claude/
+
+dist/
+.next/
+build/
+coverage/
+
+# env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# prisma
+packages/database/prisma/migrations/dev.db*
+
+# misc
+*.tsbuildinfo
+.turbo/
