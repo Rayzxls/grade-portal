@@ -9,6 +9,12 @@ interface MyGradesResponse {
   gpa: number;
   totalCredits: number;
   grades: GradeResponse[];
+  profile: {
+    studentCode: string;
+    fullName: string;
+    classroom: string | null;
+    academicYear: number | null;
+  };
 }
 
 const LETTER_LABEL: Record<string, string> = {
@@ -22,13 +28,10 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api
-      .get<MyGradesResponse>('/grades/me')
-      .then(setData)
-      .catch((e: Error) => {
-        if (e.message.includes('401')) router.push('/login');
-        else setError(e.message);
-      });
+    api.get<MyGradesResponse>('/grades/me').then(setData).catch((e: Error) => {
+      if (e.message.includes('401')) router.push('/login');
+      else setError(e.message);
+    });
   }, [router]);
 
   function logout() {
@@ -43,80 +46,74 @@ export default function DashboardPage() {
       `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/v1/transcript/me`,
       { headers: { Authorization: `Bearer ${token ?? ''}` } },
     );
-    if (!res.ok) {
-      alert('ดาวน์โหลด Transcript ไม่สำเร็จ');
-      return;
-    }
+    if (!res.ok) { alert('ดาวน์โหลดไม่สำเร็จ'); return; }
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = 'transcript.pdf';
-    a.click();
+    a.href = url; a.download = 'transcript.pdf'; a.click();
     URL.revokeObjectURL(url);
   }
 
-  if (error) return <p className="p-8 text-red-600">{error}</p>;
-  if (!data) return <p className="p-8">กำลังโหลด...</p>;
+  if (error) return <p className="p-8 text-rose-600">{error}</p>;
+  if (!data) return <p className="p-8 text-ink-soft animate-fade-in">กำลังโหลด...</p>;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">ผลการเรียนของฉัน</h1>
+    <main className="mx-auto max-w-5xl px-6 py-10 animate-fade-in">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="badge-gold">นักเรียน</div>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">ผลการเรียนของฉัน</h1>
+          <p className="mt-1 text-sm text-ink-soft">
+            {data.profile.fullName} · รหัส <span className="font-mono">{data.profile.studentCode}</span>
+            {data.profile.classroom && (
+              <> · <span className="font-semibold text-ink">{data.profile.classroom}</span>
+              <span className="text-ink-soft"> (ปีการศึกษา {data.profile.academicYear})</span></>
+            )}
+          </p>
+        </div>
         <div className="flex gap-2">
-          <button
-            onClick={downloadTranscript}
-            className="rounded-md bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800"
-          >
+          <button onClick={downloadTranscript} className="btn-accent">
             ดาวน์โหลด Transcript
           </button>
-          <button
-            onClick={logout}
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100"
-          >
-            ออกจากระบบ
-          </button>
+          <button onClick={logout} className="btn-secondary">ออกจากระบบ</button>
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-4">
-        <Stat label="GPA" value={data.gpa.toFixed(2)} />
-        <Stat label="หน่วยกิตรวม" value={String(data.totalCredits)} />
+      <div className="mt-8 grid grid-cols-2 gap-4">
+        <div className="stat">
+          <p className="stat-label">GPA</p>
+          <p className="stat-value-gold">{data.gpa.toFixed(2)}</p>
+        </div>
+        <div className="stat">
+          <p className="stat-label">หน่วยกิตรวม</p>
+          <p className="stat-value">{data.totalCredits}</p>
+        </div>
       </div>
 
-      <table className="mt-8 w-full overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <thead className="bg-slate-100 text-left text-sm">
+      <table className="table mt-8">
+        <thead>
           <tr>
-            <th className="px-4 py-3">รหัสวิชา</th>
-            <th className="px-4 py-3">ชื่อวิชา</th>
-            <th className="px-4 py-3 text-center">หน่วยกิต</th>
-            <th className="px-4 py-3 text-center">คะแนน</th>
-            <th className="px-4 py-3 text-center">เกรด</th>
+            <th>รหัสวิชา</th>
+            <th>ชื่อวิชา</th>
+            <th className="text-center">หน่วยกิต</th>
+            <th className="text-center">คะแนน</th>
+            <th className="text-center">เกรด</th>
           </tr>
         </thead>
-        <tbody className="text-sm">
-          {data.grades.map((g) => (
-            <tr key={g.id} className="border-t border-slate-100">
-              <td className="px-4 py-3 font-mono">{g.courseCode}</td>
-              <td className="px-4 py-3">{g.courseName}</td>
-              <td className="px-4 py-3 text-center">{g.credits}</td>
-              <td className="px-4 py-3 text-center">{g.score}</td>
-              <td className="px-4 py-3 text-center font-semibold">
-                {LETTER_LABEL[g.letter] ?? g.letter}
-              </td>
+        <tbody>
+          {data.grades.length === 0 ? (
+            <tr><td colSpan={5} className="py-8 text-center text-ink-soft">ยังไม่มีผลการเรียน</td></tr>
+          ) : data.grades.map((g) => (
+            <tr key={g.id}>
+              <td className="font-mono text-xs">{g.courseCode}</td>
+              <td>{g.courseName}</td>
+              <td className="text-center">{g.credits}</td>
+              <td className="text-center">{g.score}</td>
+              <td className="text-center font-semibold">{LETTER_LABEL[g.letter] ?? g.letter}</td>
             </tr>
           ))}
         </tbody>
       </table>
     </main>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5">
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-1 text-3xl font-bold">{value}</p>
-    </div>
   );
 }

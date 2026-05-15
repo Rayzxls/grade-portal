@@ -66,20 +66,37 @@ model RefreshToken {
   @@index([userId])
 }
 
+// ชั้นเรียน (ป.1/1, ม.4/2 ...) ต่อปีการศึกษา
+model Classroom {
+  id                 String   @id @default(cuid())
+  gradeLevel         String   // เช่น "ป.1", "ม.4"
+  section            Int      // ห้อง: 1, 2, 3 ...
+  academicYear       Int      // ปีการศึกษา พ.ศ. เช่น 2568
+  homeroomTeacherId  String?
+  createdAt          DateTime @default(now())
+
+  homeroomTeacher Teacher?  @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
+  students        Student[]
+
+  @@unique([gradeLevel, section, academicYear])
+  @@index([academicYear])
+}
+
 model Student {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  studentCode  String   @unique // รหัสนักศึกษา
-  major        String
-  faculty      String
-  enrollYear   Int
-  createdAt    DateTime @default(now())
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  studentCode String   @unique // รหัสนักเรียน
+  classroomId String?
+  enrollYear  Int      // ปีที่เข้าเรียน (พ.ศ.)
+  createdAt   DateTime @default(now())
 
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classroom   Classroom?   @relation(fields: [classroomId], references: [id])
   enrollments Enrollment[]
   grades      Grade[]
 
   @@index([studentCode])
+  @@index([classroomId])
 }
 
 model Teacher {
@@ -88,22 +105,25 @@ model Teacher {
   staffCode  String  @unique
   department String
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courses Course[]
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courses   Course[]
+  homerooms Classroom[] @relation("HomeroomTeacher")
 }
 
 model Course {
-  id        String   @id @default(cuid())
-  code      String   @unique // เช่น CS101
-  name      String
-  credits   Int
-  teacherId String
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  code       String   @unique // เช่น MATH-M4-001
+  name       String
+  credits    Int
+  gradeLevel String   // ชั้นที่เรียนวิชานี้ เช่น "ม.4"
+  teacherId  String
+  createdAt  DateTime @default(now())
 
   teacher     Teacher      @relation(fields: [teacherId], references: [id])
   enrollments Enrollment[]
 
   @@index([code])
+  @@index([gradeLevel])
 }
 
 model AcademicTerm {

@@ -14,10 +14,27 @@ export class ListResourcesUseCase {
         role: true,
         isActive: true,
         createdAt: true,
-        student: { select: { id: true, studentCode: true, major: true } },
+        student: {
+          select: {
+            id: true,
+            studentCode: true,
+            enrollYear: true,
+            classroom: { select: { gradeLevel: true, section: true, academicYear: true } },
+          },
+        },
         teacher: { select: { id: true, staffCode: true, department: true } },
       },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  listClassrooms() {
+    return this.prisma.classroom.findMany({
+      include: {
+        homeroomTeacher: { include: { user: { select: { fullName: true } } } },
+        _count: { select: { students: true } },
+      },
+      orderBy: [{ academicYear: 'desc' }, { gradeLevel: 'asc' }, { section: 'asc' }],
     });
   }
 

@@ -27,7 +27,13 @@ export class CreateUserUseCase {
         fullName: dto.fullName,
         role: dto.role,
         student: dto.student
-          ? { create: { ...dto.student } }
+          ? {
+              create: {
+                studentCode: dto.student.studentCode,
+                enrollYear: dto.student.enrollYear,
+                classroomId: dto.student.classroomId ?? null,
+              },
+            }
           : undefined,
         teacher: dto.teacher
           ? { create: { ...dto.teacher } }

@@ -32,37 +32,38 @@ export default function TermsPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold">ปีการศึกษา</h2>
+      <h2 className="text-3xl font-bold tracking-tight">ปีการศึกษา</h2>
+      <p className="mt-1 text-sm text-ink-soft">จัดการปีและภาคการศึกษา</p>
 
-      <form onSubmit={submit} className="mt-6 grid grid-cols-5 gap-2 rounded-lg border bg-white p-4">
-        <input type="number" placeholder="ปี (พ.ศ.)" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} required className="rounded-md border px-2 py-1.5 text-sm" />
-        <select value={form.semester} onChange={(e) => setForm({ ...form, semester: e.target.value })} className="rounded-md border px-2 py-1.5 text-sm">
+      <form onSubmit={submit} className="card mt-6 grid animate-slide-up grid-cols-5 gap-2 p-4">
+        <input type="number" placeholder="ปี (พ.ศ.)" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} required className="input" />
+        <select value={form.semester} onChange={(e) => setForm({ ...form, semester: e.target.value })} className="input">
           <option value="FIRST">ภาค 1</option>
           <option value="SECOND">ภาค 2</option>
           <option value="SUMMER">ภาคฤดูร้อน</option>
         </select>
-        <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required className="rounded-md border px-2 py-1.5 text-sm" />
-        <input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required className="rounded-md border px-2 py-1.5 text-sm" />
-        <button type="submit" className="rounded-md bg-slate-900 px-3 text-sm text-white">+ เพิ่ม</button>
-        {error && <p className="col-span-5 text-sm text-red-600">{error}</p>}
+        <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required className="input" />
+        <input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required className="input" />
+        <button type="submit" className="btn-primary btn-sm">+ เพิ่ม</button>
+        {error && <p className="col-span-5 text-sm text-rose-600">{error}</p>}
       </form>
 
-      <table className="mt-6 w-full rounded-lg border bg-white text-sm">
-        <thead className="bg-slate-100 text-left">
+      <table className="table mt-6">
+        <thead>
           <tr>
-            <th className="px-4 py-2">ปี</th>
-            <th className="px-4 py-2">ภาค</th>
-            <th className="px-4 py-2">วันเริ่ม</th>
-            <th className="px-4 py-2">วันสิ้นสุด</th>
+            <th >ปี</th>
+            <th >ภาค</th>
+            <th >วันเริ่ม</th>
+            <th >วันสิ้นสุด</th>
           </tr>
         </thead>
         <tbody>
           {items.map((t) => (
-            <tr key={t.id} className="border-t">
-              <td className="px-4 py-2">{t.year}</td>
-              <td className="px-4 py-2">{SEM_LABEL[t.semester]}</td>
-              <td className="px-4 py-2">{new Date(t.startDate).toLocaleDateString('th-TH')}</td>
-              <td className="px-4 py-2">{new Date(t.endDate).toLocaleDateString('th-TH')}</td>
+            <tr key={t.id} >
+              <td >{t.year}</td>
+              <td >{SEM_LABEL[t.semester]}</td>
+              <td >{new Date(t.startDate).toLocaleDateString('th-TH')}</td>
+              <td >{new Date(t.endDate).toLocaleDateString('th-TH')}</td>
             </tr>
           ))}
         </tbody>

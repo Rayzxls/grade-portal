@@ -5,10 +5,14 @@ import {
   createCourseSchema,
   createTermSchema,
   createEnrollmentSchema,
+  createClassroomSchema,
+  assignStudentToClassroomSchema,
   type CreateUserDto,
   type CreateCourseDto,
   type CreateTermDto,
   type CreateEnrollmentDto,
+  type CreateClassroomDto,
+  type AssignStudentToClassroomDto,
 } from '@grade/shared';
 import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -17,6 +21,8 @@ import { CreateUserUseCase } from '../application/create-user.use-case';
 import { CreateCourseUseCase } from '../application/create-course.use-case';
 import { CreateTermUseCase } from '../application/create-term.use-case';
 import { CreateEnrollmentUseCase } from '../application/create-enrollment.use-case';
+import { CreateClassroomUseCase } from '../application/create-classroom.use-case';
+import { AssignStudentToClassroomUseCase } from '../application/assign-student.use-case';
 import { ListResourcesUseCase } from '../application/list-resources.use-case';
 
 @Controller('admin')
@@ -28,6 +34,8 @@ export class AdminController {
     private createCourse: CreateCourseUseCase,
     private createTerm: CreateTermUseCase,
     private createEnrollment: CreateEnrollmentUseCase,
+    private createClassroom: CreateClassroomUseCase,
+    private assignStudent: AssignStudentToClassroomUseCase,
     private list: ListResourcesUseCase,
   ) {}
 
@@ -36,6 +44,7 @@ export class AdminController {
   @Get('courses')      courses()      { return this.list.listCourses(); }
   @Get('terms')        terms()        { return this.list.listTerms(); }
   @Get('enrollments')  enrollments()  { return this.list.listEnrollments(); }
+  @Get('classrooms')   classrooms()   { return this.list.listClassrooms(); }
   @Get('audit-logs')   auditLogs(): Promise<unknown[]> { return this.list.listAuditLogs(); }
 
   // ------- CREATE -------
@@ -57,5 +66,15 @@ export class AdminController {
   @Post('enrollments')
   enrollment(@Body(new ZodValidationPipe(createEnrollmentSchema)) dto: CreateEnrollmentDto) {
     return this.createEnrollment.execute(dto);
+  }
+
+  @Post('classrooms')
+  classroom(@Body(new ZodValidationPipe(createClassroomSchema)) dto: CreateClassroomDto) {
+    return this.createClassroom.execute(dto);
+  }
+
+  @Post('classrooms/assign')
+  assign(@Body(new ZodValidationPipe(assignStudentToClassroomSchema)) dto: AssignStudentToClassroomDto) {
+    return this.assignStudent.execute(dto);
   }
 }

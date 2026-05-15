@@ -79,77 +79,73 @@ export default function TeacherPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
+    <main className="mx-auto max-w-6xl px-6 py-10 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">บันทึกเกรดนักเรียน</h1>
-          <p className="text-sm text-slate-600">กรอกคะแนน 0-100 ระบบจะคำนวณเกรดให้อัตโนมัติ</p>
+          <div className="badge-teacher">ครู</div>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">บันทึกเกรดนักเรียน</h1>
+          <p className="mt-1 text-sm text-ink-soft">กรอกคะแนน 0-100 ระบบจะคำนวณเกรดให้อัตโนมัติ</p>
         </div>
         <button
           onClick={logout}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100"
+          className="btn-secondary btn-sm"
         >
           ออกจากระบบ
         </button>
       </div>
 
       {flash && (
-        <div className="mt-4 rounded-md bg-green-50 px-4 py-2 text-sm text-green-700">{flash}</div>
+        <div className="mt-4 animate-fade-in rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">{flash}</div>
       )}
       {error && (
-        <div className="mt-4 rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">{error}</div>
+        <div className="mt-4 animate-fade-in rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700">{error}</div>
       )}
 
-      <table className="mt-6 w-full overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <thead className="bg-slate-100 text-left text-sm">
+      <table className="table mt-6">
+        <thead>
           <tr>
-            <th className="px-4 py-3">รหัสนักศึกษา</th>
-            <th className="px-4 py-3">ชื่อ-นามสกุล</th>
-            <th className="px-4 py-3">รายวิชา</th>
-            <th className="px-4 py-3 text-center">หน่วยกิต</th>
-            <th className="px-4 py-3 text-center">คะแนนปัจจุบัน</th>
-            <th className="px-4 py-3 text-center">เกรด</th>
-            <th className="px-4 py-3 text-center">บันทึก</th>
+            <th>รหัสนักเรียน</th>
+            <th>ชื่อ-นามสกุล</th>
+            <th>รายวิชา</th>
+            <th className="text-center">หน่วยกิต</th>
+            <th className="text-center">คะแนนปัจจุบัน</th>
+            <th className="text-center">เกรด</th>
+            <th className="text-center">บันทึก</th>
           </tr>
         </thead>
-        <tbody className="text-sm">
+        <tbody>
           {rows.length === 0 && (
             <tr>
-              <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
+              <td colSpan={7} className="py-10 text-center text-ink-soft">
                 ยังไม่มีรายการลงทะเบียนในวิชาที่สอน
               </td>
             </tr>
           )}
           {rows.map((r) => (
-            <tr key={r.enrollmentId} className="border-t border-slate-100">
-              <td className="px-4 py-3 font-mono">{r.studentCode}</td>
-              <td className="px-4 py-3">{r.studentName}</td>
-              <td className="px-4 py-3">
-                <div className="font-mono text-xs text-slate-500">{r.courseCode}</div>
+            <tr key={r.enrollmentId}>
+              <td className="font-mono text-xs">{r.studentCode}</td>
+              <td>{r.studentName}</td>
+              <td>
+                <div className="font-mono text-xs text-ink-soft">{r.courseCode}</div>
                 <div>{r.courseName}</div>
               </td>
-              <td className="px-4 py-3 text-center">{r.credits}</td>
-              <td className="px-4 py-3 text-center">{r.score ?? '-'}</td>
-              <td className="px-4 py-3 text-center font-semibold">
+              <td className="text-center">{r.credits}</td>
+              <td className="text-center">{r.score ?? '-'}</td>
+              <td className="text-center font-semibold">
                 {r.letter ? LETTER_LABEL[r.letter] ?? r.letter : '-'}
               </td>
-              <td className="px-4 py-3">
+              <td>
                 <div className="flex items-center justify-center gap-2">
                   <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    placeholder="0-100"
+                    type="number" min={0} max={100} placeholder="0-100"
                     value={draft[r.enrollmentId] ?? ''}
-                    onChange={(e) =>
-                      setDraft((d) => ({ ...d, [r.enrollmentId]: e.target.value }))
-                    }
-                    className="w-20 rounded-md border border-slate-300 px-2 py-1 text-center"
+                    onChange={(e) => setDraft((d) => ({ ...d, [r.enrollmentId]: e.target.value }))}
+                    className="input w-20 text-center"
                   />
                   <button
                     onClick={() => save(r)}
                     disabled={savingId === r.enrollmentId || !draft[r.enrollmentId]}
-                    className="rounded-md bg-slate-900 px-3 py-1 text-xs text-white hover:bg-slate-800 disabled:opacity-50"
+                    className="btn-primary btn-sm"
                   >
                     {savingId === r.enrollmentId ? '...' : r.gradeId ? 'อัปเดต' : 'บันทึก'}
                   </button>

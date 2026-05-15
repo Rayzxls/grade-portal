@@ -20,27 +20,27 @@ export default function AuditPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold">Audit Log</h2>
-      <p className="mt-1 text-sm text-slate-600">ประวัติการเปลี่ยนแปลงข้อมูลสำคัญ (100 รายการล่าสุด)</p>
+      <h2 className="text-3xl font-bold tracking-tight">Audit Log</h2>
+      <p className="mt-1 text-sm text-ink-soft">ประวัติการเปลี่ยนแปลงข้อมูลสำคัญ (100 รายการล่าสุด)</p>
 
-      <table className="mt-6 w-full rounded-lg border bg-white text-sm">
-        <thead className="bg-slate-100 text-left">
+      <table className="table mt-6">
+        <thead>
           <tr>
-            <th className="px-4 py-2">เวลา</th>
-            <th className="px-4 py-2">ผู้กระทำ</th>
-            <th className="px-4 py-2">Action</th>
-            <th className="px-4 py-2">Entity</th>
-            <th className="px-4 py-2">Before → After</th>
+            <th className="">เวลา</th>
+            <th className="">ผู้กระทำ</th>
+            <th className="">Action</th>
+            <th className="">Entity</th>
+            <th className="">Before → After</th>
           </tr>
         </thead>
         <tbody>
           {items.map((l) => (
-            <tr key={l.id} className="border-t align-top">
-              <td className="px-4 py-2 text-xs">{new Date(l.createdAt).toLocaleString('th-TH')}</td>
-              <td className="px-4 py-2">{l.actor.fullName}</td>
-              <td className="px-4 py-2"><span className="rounded bg-amber-100 px-2 py-0.5 text-xs">{l.action}</span></td>
-              <td className="px-4 py-2 font-mono text-xs">{l.entityType}<br />{l.entityId.slice(0, 10)}…</td>
-              <td className="px-4 py-2 text-xs">
+            <tr key={l.id} className="align-top">
+              <td className=" text-xs">{new Date(l.createdAt).toLocaleString('th-TH')}</td>
+              <td className="">{l.actor.fullName}</td>
+              <td className=""><span className="badge-gold">{l.action}</span></td>
+              <td className=" font-mono text-xs">{l.entityType}<br />{l.entityId.slice(0, 10)}…</td>
+              <td className=" text-xs">
                 {l.before ? <pre className="rounded bg-red-50 p-1">{JSON.stringify(l.before)}</pre> : null}
                 {l.after ? <pre className="rounded bg-green-50 p-1">{JSON.stringify(l.after)}</pre> : null}
               </td>

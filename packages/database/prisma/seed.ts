@@ -30,16 +30,25 @@ async function main() {
       role: Role.TEACHER,
       fullName: 'อาจารย์สมชาย ใจดี',
       teacher: {
-        create: {
-          staffCode: 'T0001',
-          department: 'วิทยาการคอมพิวเตอร์',
-        },
+        create: { staffCode: 'T0001', department: 'คณิตศาสตร์' },
       },
     },
     include: { teacher: true },
   });
 
-  // Student
+  // Classroom: ม.4/2 ปีการศึกษา 2568 มีครูสมชายเป็นครูประจำชั้น
+  const classroom = await prisma.classroom.upsert({
+    where: { gradeLevel_section_academicYear: { gradeLevel: 'ม.4', section: 2, academicYear: 2568 } },
+    update: {},
+    create: {
+      gradeLevel: 'ม.4',
+      section: 2,
+      academicYear: 2568,
+      homeroomTeacherId: teacherUser.teacher!.id,
+    },
+  });
+
+  // Student (อยู่ห้อง ม.4/2)
   const studentUser = await prisma.user.upsert({
     where: { email: 'student@school.ac.th' },
     update: {},
@@ -50,9 +59,8 @@ async function main() {
       fullName: 'นายนักเรียน ตัวอย่าง',
       student: {
         create: {
-          studentCode: '6500001',
-          major: 'วิทยาการคอมพิวเตอร์',
-          faculty: 'วิทยาศาสตร์',
+          studentCode: '25680001',
+          classroomId: classroom.id,
           enrollYear: 2565,
         },
       },
@@ -60,14 +68,15 @@ async function main() {
     include: { student: true },
   });
 
-  // Course
+  // Course (วิชาคณิต ม.4)
   const course = await prisma.course.upsert({
-    where: { code: 'CS101' },
+    where: { code: 'MATH-M4-001' },
     update: {},
     create: {
-      code: 'CS101',
-      name: 'Introduction to Computer Science',
+      code: 'MATH-M4-001',
+      name: 'คณิตศาสตร์พื้นฐาน ม.4',
       credits: 3,
+      gradeLevel: 'ม.4',
       teacherId: teacherUser.teacher!.id,
     },
   });
@@ -79,8 +88,8 @@ async function main() {
     create: {
       year: 2568,
       semester: Semester.FIRST,
-      startDate: new Date('2025-06-01'),
-      endDate: new Date('2025-10-31'),
+      startDate: new Date('2025-05-15'),
+      endDate: new Date('2025-10-10'),
     },
   });
 
@@ -116,13 +125,10 @@ async function main() {
 
   console.log('✅ Seed complete');
   console.log('   admin:   admin@school.ac.th / password123');
-  console.log('   teacher: teacher@school.ac.th / password123');
-  console.log('   student: student@school.ac.th / password123');
+  console.log('   teacher: teacher@school.ac.th / password123  (ครูประจำชั้น ม.4/2)');
+  console.log('   student: student@school.ac.th / password123  (ม.4/2 #25680001)');
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
+  .catch((e) => { console.error(e); process.exit(1); })
   .finally(() => prisma.$disconnect());

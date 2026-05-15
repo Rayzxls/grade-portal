@@ -48,42 +48,43 @@ export default function EnrollmentsPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold">การลงทะเบียน</h2>
+      <h2 className="text-3xl font-bold tracking-tight">การลงทะเบียน</h2>
+      <p className="mt-1 text-sm text-ink-soft">จัดการการลงทะเบียนเรียนของนักเรียน</p>
 
-      <form onSubmit={submit} className="mt-6 grid grid-cols-4 gap-2 rounded-lg border bg-white p-4">
-        <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} required className="rounded-md border px-2 py-1.5 text-sm">
+      <form onSubmit={submit} className="card mt-6 grid animate-slide-up grid-cols-4 gap-2 p-4">
+        <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} required className="input">
           <option value="">-- นักเรียน --</option>
           {students.map((s) => <option key={s.id} value={s.id}>{s.studentCode}</option>)}
         </select>
-        <select value={form.courseId} onChange={(e) => setForm({ ...form, courseId: e.target.value })} required className="rounded-md border px-2 py-1.5 text-sm">
+        <select value={form.courseId} onChange={(e) => setForm({ ...form, courseId: e.target.value })} required className="input">
           <option value="">-- รายวิชา --</option>
           {courses.map((c) => <option key={c.id} value={c.id}>{c.code} {c.name}</option>)}
         </select>
-        <select value={form.termId} onChange={(e) => setForm({ ...form, termId: e.target.value })} required className="rounded-md border px-2 py-1.5 text-sm">
+        <select value={form.termId} onChange={(e) => setForm({ ...form, termId: e.target.value })} required className="input">
           <option value="">-- เทอม --</option>
           {terms.map((t) => <option key={t.id} value={t.id}>{t.year}/{t.semester}</option>)}
         </select>
-        <button type="submit" className="rounded-md bg-slate-900 px-3 text-sm text-white">+ ลงทะเบียน</button>
-        {error && <p className="col-span-4 text-sm text-red-600">{error}</p>}
+        <button type="submit" className="btn-primary btn-sm">+ ลงทะเบียน</button>
+        {error && <p className="col-span-4 text-sm text-rose-600">{error}</p>}
       </form>
 
-      <table className="mt-6 w-full rounded-lg border bg-white text-sm">
-        <thead className="bg-slate-100 text-left">
+      <table className="table mt-6">
+        <thead>
           <tr>
-            <th className="px-4 py-2">รหัสนักศึกษา</th>
-            <th className="px-4 py-2">ชื่อ</th>
-            <th className="px-4 py-2">รายวิชา</th>
-            <th className="px-4 py-2">เทอม</th>
+            <th >รหัสนักศึกษา</th>
+            <th >ชื่อ</th>
+            <th >รายวิชา</th>
+            <th >เทอม</th>
             <th className="px-4 py-2 text-center">เกรด</th>
           </tr>
         </thead>
         <tbody>
           {items.map((e) => (
-            <tr key={e.id} className="border-t">
+            <tr key={e.id} >
               <td className="px-4 py-2 font-mono">{e.student.studentCode}</td>
-              <td className="px-4 py-2">{e.student.user.fullName}</td>
-              <td className="px-4 py-2">{e.course.code} {e.course.name}</td>
-              <td className="px-4 py-2">{e.term.year}/{e.term.semester[0]}</td>
+              <td >{e.student.user.fullName}</td>
+              <td >{e.course.code} {e.course.name}</td>
+              <td >{e.term.year}/{e.term.semester[0]}</td>
               <td className="px-4 py-2 text-center">{e.grade ? `${e.grade.score} (${e.grade.letter})` : '-'}</td>
             </tr>
           ))}

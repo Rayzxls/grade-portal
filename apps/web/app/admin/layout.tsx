@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 const NAV = [
   { href: '/admin', label: 'ภาพรวม' },
   { href: '/admin/users', label: 'ผู้ใช้' },
+  { href: '/admin/classrooms', label: 'ห้องเรียน' },
   { href: '/admin/courses', label: 'รายวิชา' },
   { href: '/admin/terms', label: 'ปีการศึกษา' },
   { href: '/admin/enrollments', label: 'การลงทะเบียน' },
@@ -24,25 +25,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-slate-200 bg-white">
+      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          <h1 className="font-semibold">Admin · Grade Portal</h1>
-          <button
-            onClick={logout}
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100"
-          >
-            ออกจากระบบ
-          </button>
+          <div className="flex items-center gap-3">
+            <span className="badge-gold">Admin</span>
+            <h1 className="font-semibold tracking-tight">Grade Portal</h1>
+          </div>
+          <button onClick={logout} className="btn-ghost btn-sm">ออกจากระบบ</button>
         </div>
-        <nav className="mx-auto flex max-w-6xl gap-1 px-6 pb-2">
+        <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-6 pb-2">
           {NAV.map((n) => {
             const active = pathname === n.href;
             return (
               <Link
                 key={n.href}
                 href={n.href}
-                className={`rounded-md px-3 py-1.5 text-sm ${
-                  active ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
+                className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition-all duration-150 ${
+                  active
+                    ? 'bg-ink text-white shadow-soft'
+                    : 'text-ink-soft hover:bg-slate-100 hover:text-ink'
                 }`}
               >
                 {n.label}
@@ -51,7 +52,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
       </header>
-      <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-6 py-8 animate-fade-in">{children}</main>
     </div>
   );
 }

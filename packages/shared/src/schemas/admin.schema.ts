@@ -10,9 +10,8 @@ export const createUserSchema = z.object({
   student: z
     .object({
       studentCode: z.string().min(1),
-      major: z.string().min(1),
-      faculty: z.string().min(1),
       enrollYear: z.number().int().min(2500).max(2600),
+      classroomId: z.string().cuid().optional(), // จัดเข้าห้องทีหลังก็ได้
     })
     .optional(),
   // เมื่อ role = TEACHER ต้องส่ง teacher profile
@@ -29,9 +28,24 @@ export const createCourseSchema = z.object({
   code: z.string().min(2),
   name: z.string().min(1),
   credits: z.number().int().min(1).max(6),
+  gradeLevel: z.string().min(1), // เช่น "ม.4"
   teacherId: z.string().cuid(),
 });
 export type CreateCourseDto = z.infer<typeof createCourseSchema>;
+
+export const createClassroomSchema = z.object({
+  gradeLevel: z.string().min(1),
+  section: z.number().int().min(1).max(99),
+  academicYear: z.number().int().min(2500).max(2600),
+  homeroomTeacherId: z.string().cuid().optional(),
+});
+export type CreateClassroomDto = z.infer<typeof createClassroomSchema>;
+
+export const assignStudentToClassroomSchema = z.object({
+  studentId: z.string().cuid(),
+  classroomId: z.string().cuid(),
+});
+export type AssignStudentToClassroomDto = z.infer<typeof assignStudentToClassroomSchema>;
 
 export const createTermSchema = z.object({
   year: z.number().int().min(2500).max(2600),

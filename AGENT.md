@@ -209,7 +209,70 @@ docker compose up -d        # รัน stack ทั้งหมด
 
 ---
 
-## 10. Definition of Done (DoD)
+## 10. Design System (UI/UX Standard)
+
+**ธีม:** Modern · ทางการ · ดูง่าย · หรู (Premium Minimal)
+
+### Color Tokens
+
+| Token | Hex | ใช้กับ |
+|-------|-----|--------|
+| `--bg` | `#F8FAFC` (slate-50) | พื้นหลังหลัก |
+| `--surface` | `#FFFFFF` | การ์ด/พาเนล |
+| `--ink` | `#0F172A` (slate-900) | ตัวอักษรหลัก, ปุ่ม primary |
+| `--ink-soft` | `#475569` (slate-600) | ตัวอักษรรอง |
+| `--accent` | `#B8860B` (deep gold) | จุดเน้น/badge หรู |
+| `--accent-soft` | `#FEF3C7` (amber-100) | พื้นหลัง badge |
+| `--success` | `#10B981` (emerald-500) | สำเร็จ |
+| `--danger` | `#E11D48` (rose-600) | error/destructive |
+| `--border` | `#E2E8F0` (slate-200) | เส้นขอบ |
+
+### Typography
+- **Font:** `IBM Plex Sans Thai` (Thai-first) → fallback `system-ui`
+- **Headings:** `font-bold tracking-tight` — h1 `text-3xl`, h2 `text-2xl`
+- **Body:** `text-sm leading-relaxed`
+- **Numbers/codes:** `font-mono` (รหัสนักเรียน, รหัสวิชา)
+
+### Spacing & Radius
+- ใช้ Tailwind scale: gap-2/3/4, padding-4/6/8
+- Card radius: `rounded-xl` (12px) — ไม่ใช้ rounded-full ยกเว้น badge
+- Border subtle เสมอ: `border border-slate-200`
+
+### Shadow (สำคัญต่อความ "หรู")
+- Default card: `shadow-sm` + border
+- Hover/elevated: `shadow-md` พร้อม transition
+- ห้ามใช้ shadow-2xl หรือ glow แรง ๆ — ดูเล่น
+
+### Animation Tokens
+- `transition-all duration-200 ease-out` เป็นค่ามาตรฐาน
+- **Hover scale:** ปุ่มหลัก `hover:scale-[1.02]` + `active:scale-[0.98]`
+- **Fade-in:** หน้าใหม่ใช้ `animate-fade-in` (200ms)
+- **Slide-up:** การ์ดบน dashboard `animate-slide-up`
+- **Shimmer:** ปุ่ม primary มี gradient sweep ตอน hover
+
+### Component Classes (กำหนดใน globals.css)
+
+| Class | ใช้กับ |
+|-------|--------|
+| `.btn-primary` | ปุ่มหลัก — gradient ดำ + shimmer hover |
+| `.btn-secondary` | ปุ่มรอง — ขอบ slate |
+| `.btn-ghost` | ปุ่มโปร่ง — hover bg |
+| `.btn-danger` | ปุ่ม destructive |
+| `.card` | กล่องการ์ดมาตรฐาน |
+| `.input` | input field มาตรฐาน |
+| `.badge-{role}` | ป้าย role (Admin/Teacher/Student) |
+
+### กฎเหล็ก UI
+- ✅ ทุก interactive element ต้องมี `:hover` และ `:focus-visible` state
+- ✅ Focus ring สีทอง `ring-2 ring-amber-500/40` (สังเกตชัด แต่ไม่จี๊ด)
+- ✅ Transition ทุก hover ขั้นต่ำ 150ms
+- 🚫 ห้ามใช้สี gradient จัด ๆ (rainbow, neon)
+- 🚫 ห้าม animate ที่นานเกิน 400ms — ดู laggy
+- 🚫 ห้ามใส่ emoji เป็น icon หลัก — ใช้ unicode/lucide เท่านั้น
+
+---
+
+## 11. Definition of Done (DoD)
 
 งานจะถือว่า "เสร็จ" ก็ต่อเมื่อ:
 

@@ -16,14 +16,36 @@ export class GetMyGradesUseCase {
     private repo: IGradeRepository,
   ) {}
 
-  async execute(userId: string): Promise<MyGradesResult> {
-    const student = await this.prisma.student.findUnique({ where: { userId } });
+  async execute(userId: string): Promise<MyGradesResult & { profile: StudentProfile }> {
+    const student = await this.prisma.student.findUnique({
+      where: { userId },
+      include: {
+        user: { select: { fullName: true } },
+        classroom: { select: { gradeLevel: true, section: true, academicYear: true } },
+      },
+    });
     if (!student) throw new NotFoundException('ไม่พบโปรไฟล์นักเรียน');
 
     const grades = await this.repo.findByStudentId(student.id);
     const gpa = calculateGpa(grades.map((g) => ({ credits: g.credits, letter: g.letter })));
     const totalCredits = grades.reduce((sum, g) => sum + g.credits, 0);
 
-    return { gpa, totalCredits, grades };
+    const profile: StudentProfile = {
+      studentCode: student.studentCode,
+      fullName: student.user.fullName,
+      classroom: student.classroom
+        ? `${student.classroom.gradeLevel}/${student.classroom.section}`
+        : null,
+      academicYear: student.classroom?.academicYear ?? null,
+    };
+
+    return { gpa, totalCredits, grades, profile };
   }
+}
+
+export interface StudentProfile {
+  studentCode: string;
+  fullName: string;
+  classroom: string | null;
+  academicYear: number | null;
 }

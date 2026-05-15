@@ -15,7 +15,7 @@ export class GenerateTranscriptUseCase {
   async execute(userId: string): Promise<Buffer> {
     const student = await this.prisma.student.findUnique({
       where: { userId },
-      include: { user: true },
+      include: { user: true, classroom: true },
     });
     if (!student) throw new NotFoundException('ไม่พบโปรไฟล์นักเรียน');
 
@@ -50,8 +50,13 @@ export class GenerateTranscriptUseCase {
       doc.fontSize(11);
       doc.text(`Student ID:   ${student.studentCode}`);
       doc.text(`Name:         ${student.user.fullName}`);
-      doc.text(`Faculty:      ${student.faculty}`);
-      doc.text(`Major:        ${student.major}`);
+      doc.text(
+        `Classroom:    ${
+          student.classroom
+            ? `${student.classroom.gradeLevel}/${student.classroom.section} (${student.classroom.academicYear})`
+            : '-'
+        }`,
+      );
       doc.text(`Enroll Year:  ${student.enrollYear}`);
       doc.moveDown(1);
 

@@ -2,6 +2,176 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+/* ───── Base ───── */
+@layer base {
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --ink: #0f172a;
+    --ink-soft: #475569;
+    --accent: #b8860b;
+    --border: #e2e8f0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Focus ring สีทอง — สังเกตชัดแต่ไม่จี๊ด */
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.35);
+    border-radius: 8px;
+  }
+
+  ::selection {
+    background: rgba(184, 134, 11, 0.25);
+  }
+}
+
+/* ───── Components ───── */
+@layer components {
+  /* Card */
+  .card {
+    @apply rounded-xl border border-slate-200 bg-white shadow-soft transition-shadow duration-200;
+  }
+  .card:hover {
+    @apply shadow-lift;
+  }
+  .card-flat {
+    @apply rounded-xl border border-slate-200 bg-white;
+  }
+
+  /* Input */
+  .input {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm
+           text-ink placeholder:text-slate-400
+           transition-colors duration-150
+           hover:border-slate-400
+           focus:border-ink focus:outline-none;
+  }
+
+  /* ───── Buttons ───── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2
+           rounded-lg px-4 py-2 text-sm font-medium
+           transition-all duration-200 ease-out
+           hover:scale-[1.02] active:scale-[0.98]
+           disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100;
+  }
+
+  /* Primary — gradient ดำหรู + shimmer hover */
+  .btn-primary {
+    @apply btn relative overflow-hidden text-white shadow-soft hover:shadow-lift;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    background-size: 200% 100%;
+  }
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      110deg,
+      transparent 35%,
+      rgba(184, 134, 11, 0.25) 50%,
+      transparent 65%
+    );
+    background-size: 200% 100%;
+    background-position: -200% 0;
+    transition: background-position 700ms ease;
+    pointer-events: none;
+  }
+  .btn-primary:hover::before {
+    background-position: 200% 0;
+  }
+
+  /* Secondary — ขอบ slate */
+  .btn-secondary {
+    @apply btn border border-slate-300 bg-white text-ink shadow-soft
+           hover:border-ink hover:shadow-lift;
+  }
+
+  /* Ghost — โปร่ง */
+  .btn-ghost {
+    @apply btn text-ink-soft hover:bg-slate-100 hover:text-ink;
+  }
+
+  /* Accent — gold */
+  .btn-accent {
+    @apply btn text-white shadow-soft;
+    background: linear-gradient(135deg, #b8860b 0%, #d4a017 100%);
+  }
+  .btn-accent:hover {
+    @apply shadow-lift;
+    filter: brightness(1.08);
+  }
+
+  /* Danger */
+  .btn-danger {
+    @apply btn bg-rose-600 text-white shadow-soft hover:bg-rose-700 hover:shadow-lift;
+  }
+
+  /* Small variant */
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+
+  /* ───── Badges ───── */
+  .badge {
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium;
+  }
+  .badge-admin {
+    @apply badge bg-rose-50 text-rose-700 ring-1 ring-rose-200;
+  }
+  .badge-teacher {
+    @apply badge bg-blue-50 text-blue-700 ring-1 ring-blue-200;
+  }
+  .badge-student {
+    @apply badge bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200;
+  }
+  .badge-gold {
+    @apply badge text-amber-800 ring-1 ring-amber-200;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+  }
+
+  /* ───── Table ───── */
+  .table {
+    @apply w-full overflow-hidden rounded-xl border border-slate-200 bg-white text-sm;
+  }
+  .table thead {
+    @apply bg-slate-50/80 text-left text-xs uppercase tracking-wider text-ink-soft;
+  }
+  .table thead th {
+    @apply px-4 py-3 font-semibold;
+  }
+  .table tbody tr {
+    @apply border-t border-slate-100 transition-colors duration-150 hover:bg-slate-50/60;
+  }
+  .table tbody td {
+    @apply px-4 py-3;
+  }
+
+  /* ───── Stat ───── */
+  .stat {
+    @apply card animate-slide-up p-5;
+  }
+  .stat-label {
+    @apply text-xs font-medium uppercase tracking-wider text-ink-soft;
+  }
+  .stat-value {
+    @apply mt-1 text-3xl font-bold tracking-tight text-ink;
+  }
+  .stat-value-gold {
+    @apply mt-1 text-3xl font-bold tracking-tight;
+    background: linear-gradient(135deg, #b8860b, #d4a017);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 }
