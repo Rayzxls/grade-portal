@@ -7,12 +7,14 @@ import {
   createEnrollmentSchema,
   createClassroomSchema,
   assignStudentToClassroomSchema,
+  bulkEnrollClassroomSchema,
   type CreateUserDto,
   type CreateCourseDto,
   type CreateTermDto,
   type CreateEnrollmentDto,
   type CreateClassroomDto,
   type AssignStudentToClassroomDto,
+  type BulkEnrollClassroomDto,
 } from '@grade/shared';
 import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -23,7 +25,9 @@ import { CreateTermUseCase } from '../application/create-term.use-case';
 import { CreateEnrollmentUseCase } from '../application/create-enrollment.use-case';
 import { CreateClassroomUseCase } from '../application/create-classroom.use-case';
 import { AssignStudentToClassroomUseCase } from '../application/assign-student.use-case';
+import { BulkEnrollClassroomUseCase } from '../application/bulk-enroll-classroom.use-case';
 import { ListResourcesUseCase } from '../application/list-resources.use-case';
+import { CurrentUser, AuthenticatedUser } from '../../../common/decorators/current-user.decorator';
 
 @Controller('admin')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -36,6 +40,7 @@ export class AdminController {
     private createEnrollment: CreateEnrollmentUseCase,
     private createClassroom: CreateClassroomUseCase,
     private assignStudent: AssignStudentToClassroomUseCase,
+    private bulkEnroll: BulkEnrollClassroomUseCase,
     private list: ListResourcesUseCase,
   ) {}
 
@@ -76,5 +81,13 @@ export class AdminController {
   @Post('classrooms/assign')
   assign(@Body(new ZodValidationPipe(assignStudentToClassroomSchema)) dto: AssignStudentToClassroomDto) {
     return this.assignStudent.execute(dto);
+  }
+
+  @Post('enrollments/bulk')
+  bulk(
+    @Body(new ZodValidationPipe(bulkEnrollClassroomSchema)) dto: BulkEnrollClassroomDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.bulkEnroll.execute(dto, user.id);
   }
 }

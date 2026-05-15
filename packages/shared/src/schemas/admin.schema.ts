@@ -47,6 +47,14 @@ export const assignStudentToClassroomSchema = z.object({
 });
 export type AssignStudentToClassroomDto = z.infer<typeof assignStudentToClassroomSchema>;
 
+// ลงทะเบียนทั้งห้องเรียนเข้ารายวิชา (1 ปุ่ม → enroll นักเรียนทั้ง 30+ คน)
+export const bulkEnrollClassroomSchema = z.object({
+  classroomId: z.string().cuid(),
+  courseId: z.string().cuid(),
+  termId: z.string().cuid(),
+});
+export type BulkEnrollClassroomDto = z.infer<typeof bulkEnrollClassroomSchema>;
+
 export const createTermSchema = z.object({
   year: z.number().int().min(2500).max(2600),
   semester: z.enum(['FIRST', 'SECOND', 'SUMMER']),
