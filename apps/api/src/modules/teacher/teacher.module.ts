@@ -6,6 +6,7 @@ import { CreateMyCourseUseCase } from './application/create-my-course.use-case';
 import { BulkAddStudentsUseCase } from './application/bulk-add-students.use-case';
 import { ClassroomWorkspaceUseCase } from './application/classroom-workspace.use-case';
 import { ScoreSheetUseCase } from './application/score-sheet.use-case';
+import { TeacherCrudUseCase } from './application/crud.use-case';
 
 @Module({
   controllers: [TeacherController],
@@ -16,6 +17,7 @@ import { ScoreSheetUseCase } from './application/score-sheet.use-case';
     BulkAddStudentsUseCase,
     ClassroomWorkspaceUseCase,
     ScoreSheetUseCase,
+    TeacherCrudUseCase,
   ],
 })
 export class TeacherModule {}

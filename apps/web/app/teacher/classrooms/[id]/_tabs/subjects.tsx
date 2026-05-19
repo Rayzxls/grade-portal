@@ -115,7 +115,35 @@ export function SubjectsTab({
                   {s.graded}/{s.totalStudents}
                 </span>
               </td>
-              <td><button onClick={() => removeSubject(s.courseId, s.code)} className="btn-ghost btn-sm text-rose-600 hover:text-rose-700">ลบ</button></td>
+              <td>
+                <div className="flex justify-end gap-1">
+                  <button
+                    onClick={async () => {
+                      const name = prompt('ชื่อวิชา', s.name);
+                      if (!name) return;
+                      const credStr = prompt('หน่วยกิต', String(s.credits));
+                      const credits = Number(credStr);
+                      if (!credits) return;
+                      try {
+                        await api.patch(`/teacher/courses/${s.courseId}`, { name, credits });
+                        await load();
+                      } catch (e) { setError(e instanceof Error ? e.message : 'error'); }
+                    }}
+                    className="btn-ghost btn-sm"
+                  >✎</button>
+                  <button onClick={() => removeSubject(s.courseId, s.code)} className="btn-ghost btn-sm text-rose-600 hover:text-rose-700">ลบจากห้อง</button>
+                  <button
+                    onClick={async () => {
+                      if (!confirm(`ลบวิชา ${s.code} ออกจากระบบถาวร?\n(ต้องไม่มีนักเรียนลงทะเบียน/สมุดคะแนน)`)) return;
+                      try {
+                        await api.delete(`/teacher/courses/${s.courseId}`);
+                        await load();
+                      } catch (e) { setError(e instanceof Error ? e.message : 'error'); }
+                    }}
+                    className="btn-ghost btn-sm text-rose-600 hover:text-rose-700"
+                  >ลบทั้งวิชา</button>
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>

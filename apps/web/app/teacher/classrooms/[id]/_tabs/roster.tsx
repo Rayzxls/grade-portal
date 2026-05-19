@@ -70,15 +70,52 @@ export function RosterTab({ classroom, onReload }: { classroom: Classroom; onRel
 
       <h3 className="text-lg font-semibold tracking-tight">รายชื่อนักเรียน ({classroom.students.length} คน)</h3>
       <table className="table mt-3">
-        <thead><tr><th>รหัส</th><th>ชื่อ-สกุล</th><th>อีเมล</th></tr></thead>
+        <thead><tr><th>รหัส</th><th>ชื่อ-สกุล</th><th>อีเมล</th><th className="w-48 text-right">จัดการ</th></tr></thead>
         <tbody>
           {classroom.students.length === 0 ? (
-            <tr><td colSpan={3} className="py-8 text-center text-ink-soft">ยังไม่มีนักเรียน — เพิ่มด้านล่างได้เลย</td></tr>
+            <tr><td colSpan={4} className="py-8 text-center text-ink-soft">ยังไม่มีนักเรียน — เพิ่มด้านล่าง</td></tr>
           ) : classroom.students.map((s) => (
             <tr key={s.id}>
               <td className="font-mono text-xs">{s.studentCode}</td>
               <td>{s.user.fullName}</td>
               <td className="text-ink-soft">{s.user.email}</td>
+              <td className="text-right">
+                <div className="flex justify-end gap-1">
+                  <button
+                    onClick={async () => {
+                      const fullName = prompt('ชื่อ-สกุล', s.user.fullName);
+                      if (!fullName) return;
+                      const studentCode = prompt('รหัสนักเรียน', s.studentCode);
+                      if (!studentCode) return;
+                      try {
+                        await api.patch(`/teacher/students/${s.id}`, { fullName, studentCode });
+                        await onReload();
+                      } catch (e) { setError(e instanceof Error ? e.message : 'error'); }
+                    }}
+                    className="btn-ghost btn-sm"
+                  >✎ แก้</button>
+                  <button
+                    onClick={async () => {
+                      if (!confirm(`ย้าย ${s.user.fullName} ออกจากห้อง?\n(ยังคงเป็นนักเรียนในระบบ)`)) return;
+                      try {
+                        await api.post(`/teacher/students/${s.id}/unassign`, {});
+                        await onReload();
+                      } catch (e) { setError(e instanceof Error ? e.message : 'error'); }
+                    }}
+                    className="btn-ghost btn-sm"
+                  >ย้ายออก</button>
+                  <button
+                    onClick={async () => {
+                      if (!confirm(`ลบ ${s.user.fullName} ออกจากระบบถาวร?\nคะแนน/เกรดทั้งหมดจะถูกลบด้วย`)) return;
+                      try {
+                        await api.delete(`/teacher/students/${s.id}`);
+                        await onReload();
+                      } catch (e) { setError(e instanceof Error ? e.message : 'error'); }
+                    }}
+                    className="btn-ghost btn-sm text-rose-600 hover:text-rose-700"
+                  >ลบ</button>
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>

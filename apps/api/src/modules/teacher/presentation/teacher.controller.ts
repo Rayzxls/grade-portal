@@ -10,6 +10,9 @@ import {
   addColumnSchema,
   updateColumnSchema,
   saveCellsSchema,
+  updateClassroomSchema,
+  updateCourseSchema,
+  updateStudentSchema,
   type TeacherCreateClassroomDto,
   type TeacherCreateCourseDto,
   type BulkAddStudentsDto,
@@ -19,6 +22,9 @@ import {
   type AddColumnDto,
   type UpdateColumnDto,
   type SaveCellsDto,
+  type UpdateClassroomDto,
+  type UpdateCourseDto,
+  type UpdateStudentDto,
 } from '@grade/shared';
 import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -30,6 +36,7 @@ import { CreateMyCourseUseCase } from '../application/create-my-course.use-case'
 import { BulkAddStudentsUseCase } from '../application/bulk-add-students.use-case';
 import { ClassroomWorkspaceUseCase } from '../application/classroom-workspace.use-case';
 import { ScoreSheetUseCase } from '../application/score-sheet.use-case';
+import { TeacherCrudUseCase } from '../application/crud.use-case';
 
 @Controller('teacher')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -42,7 +49,55 @@ export class TeacherController {
     private bulkAdd: BulkAddStudentsUseCase,
     private workspace: ClassroomWorkspaceUseCase,
     private sheets: ScoreSheetUseCase,
+    private crud: TeacherCrudUseCase,
   ) {}
+
+  // ---------- CRUD: Update + Delete ----------
+  @Patch('classrooms/:id')
+  patchClassroom(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(updateClassroomSchema)) dto: UpdateClassroomDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) { return this.crud.updateClassroom(id, dto, user.id); }
+
+  @Delete('classrooms/:id')
+  delClassroom(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.crud.deleteClassroom(id, user.id);
+  }
+
+  @Patch('courses/:id')
+  patchCourse(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(updateCourseSchema)) dto: UpdateCourseDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) { return this.crud.updateCourse(id, dto, user.id); }
+
+  @Delete('courses/:id')
+  delCourse(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.crud.deleteCourse(id, user.id);
+  }
+
+  @Patch('students/:id')
+  patchStudent(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(updateStudentSchema)) dto: UpdateStudentDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) { return this.crud.updateStudent(id, dto, user.id); }
+
+  @Delete('students/:id')
+  delStudent(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.crud.deleteStudent(id, user.id);
+  }
+
+  @Post('students/:id/unassign')
+  unassignStudent(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.crud.unassignStudent(id, user.id);
+  }
+
+  @Delete('sheets/:id')
+  delSheet(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.crud.deleteSheet(id, user.id);
+  }
 
   // ---------- ScoreSheet (Gradebook) ----------
   @Get('classrooms/:id/sheet')

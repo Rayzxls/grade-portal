@@ -245,6 +245,19 @@ export function ScoresTab({ classroomId, termId }: { classroomId: string; termId
               {!locked && <button onClick={saveAll} disabled={busy || dirty.size === 0} className="btn-secondary btn-sm">💾 บันทึก</button>}
               {!locked && <button onClick={finalize} disabled={busy} className="btn-accent btn-sm">🔒 ปิดเล่ม → ออกเกรด</button>}
               {locked && <button onClick={reopen} className="btn-secondary btn-sm">เปิดเล่มใหม่</button>}
+              {!locked && (
+                <button
+                  onClick={async () => {
+                    if (!confirm('ลบสมุดคะแนนเล่มนี้ทั้งหมด?\nคะแนนที่กรอกทั้งหมดจะหายไป (เกรดที่ออกแล้วยังอยู่)')) return;
+                    try {
+                      await api.delete(`/teacher/sheets/${sheet.id}`);
+                      setFlash('ลบสมุดคะแนนแล้ว');
+                      await loadSheet(courseId);
+                    } catch (e) { setError(e instanceof Error ? e.message : 'error'); }
+                  }}
+                  className="btn-ghost btn-sm text-rose-600 hover:text-rose-700"
+                >🗑 ลบสมุด</button>
+              )}
             </div>
           </div>
 

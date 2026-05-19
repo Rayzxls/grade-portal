@@ -72,9 +72,36 @@ export default function TeacherClassroomsPage() {
                 <div className="text-xl font-bold">{c.gradeLevel}/{c.section}</div>
                 <div className="text-sm text-ink-soft">ปีการศึกษา {c.academicYear} · {c._count.students} คน</div>
               </div>
-              <Link href={`/teacher/classrooms/${c.id}`} className="btn-secondary btn-sm">
-                จัดการนักเรียน →
-              </Link>
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    const gl = prompt('ชั้น (เช่น ม.4)', c.gradeLevel);
+                    if (!gl) return;
+                    const secStr = prompt('ห้อง', String(c.section));
+                    const yrStr = prompt('ปีการศึกษา', String(c.academicYear));
+                    const section = Number(secStr); const academicYear = Number(yrStr);
+                    if (!section || !academicYear) return;
+                    try {
+                      await api.patch(`/teacher/classrooms/${c.id}`, { gradeLevel: gl, section, academicYear });
+                      await load();
+                    } catch (e) { setError(e instanceof Error ? e.message : 'error'); }
+                  }}
+                  className="btn-ghost btn-sm"
+                >✎ แก้ไข</button>
+                <button
+                  onClick={async () => {
+                    if (!confirm(`ลบห้อง ${c.gradeLevel}/${c.section}?\n(ต้องไม่มีนักเรียน/สมุดคะแนนผูกอยู่)`)) return;
+                    try {
+                      await api.delete(`/teacher/classrooms/${c.id}`);
+                      await load();
+                    } catch (e) { setError(e instanceof Error ? e.message : 'error'); }
+                  }}
+                  className="btn-ghost btn-sm text-rose-600 hover:text-rose-700"
+                >ลบ</button>
+                <Link href={`/teacher/classrooms/${c.id}`} className="btn-secondary btn-sm">
+                  จัดการ →
+                </Link>
+              </div>
             </div>
 
             {c.students.length > 0 && (

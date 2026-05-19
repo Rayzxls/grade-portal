@@ -88,6 +88,29 @@ export const addSubjectToClassroomSchema = z.object({
 });
 export type AddSubjectToClassroomDto = z.infer<typeof addSubjectToClassroomSchema>;
 
+// Update DTOs
+export const updateClassroomSchema = z.object({
+  gradeLevel: z.string().min(1).optional(),
+  section: z.number().int().min(1).max(99).optional(),
+  academicYear: z.number().int().min(2500).max(2600).optional(),
+});
+export type UpdateClassroomDto = z.infer<typeof updateClassroomSchema>;
+
+export const updateCourseSchema = z.object({
+  code: z.string().min(2).optional(),
+  name: z.string().min(1).optional(),
+  credits: z.number().int().min(1).max(6).optional(),
+  gradeLevel: z.string().min(1).optional(),
+});
+export type UpdateCourseDto = z.infer<typeof updateCourseSchema>;
+
+export const updateStudentSchema = z.object({
+  fullName: z.string().min(1).optional(),
+  studentCode: z.string().min(1).optional(),
+  enrollYear: z.number().int().min(2500).max(2600).optional(),
+});
+export type UpdateStudentDto = z.infer<typeof updateStudentSchema>;
+
 // สมุดเก็บคะแนน — สร้างเล่ม + จัดการ column + บันทึกค่า
 export const createScoreSheetSchema = z.object({
   courseId: z.string().cuid(),
