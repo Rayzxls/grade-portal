@@ -1,9 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import { RosterTab } from './_tabs/roster';
+import { SubjectsTab } from './_tabs/subjects';
+import { ScoresTab } from './_tabs/scores';
 
 interface MyClassroom {
   id: string;
@@ -14,171 +17,122 @@ interface MyClassroom {
   students: { id: string; studentCode: string; user: { fullName: string; email: string } }[];
 }
 
-type StudentRow = { studentCode: string; fullName: string; enrollYear: number };
+interface Term { id: string; year: number; semester: string }
 
-export default function ClassroomDetailPage() {
+const TABS = [
+  { key: 'roster', label: 'นักเรียน' },
+  { key: 'subjects', label: 'รายวิชา' },
+  { key: 'scores', label: 'คะแนน' },
+  { key: 'schedule', label: 'ตารางเรียน', disabled: true },
+  { key: 'close', label: 'ปิดเทอม', disabled: true },
+] as const;
+
+export default function ClassroomWorkspacePage() {
   const { id } = useParams<{ id: string }>();
-  const [classroom, setClassroom] = useState<MyClassroom | null>(null);
-  const [rows, setRows] = useState<StudentRow[]>([{ studentCode: '', fullName: '', enrollYear: 2568 }]);
-  const [error, setError] = useState<string | null>(null);
-  const [flash, setFlash] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const router = useRouter();
+  const search = useSearchParams();
+  const tab = (search.get('tab') as (typeof TABS)[number]['key']) ?? 'roster';
+  const termIdFromUrl = search.get('term') ?? '';
 
-  async function load() {
+  const [classroom, setClassroom] = useState<MyClassroom | null>(null);
+  const [terms, setTerms] = useState<Term[]>([]);
+  const [termId, setTermId] = useState(termIdFromUrl);
+
+  async function loadClassroom() {
     const all = await api.get<MyClassroom[]>('/teacher/classrooms');
     setClassroom(all.find((c) => c.id === id) ?? null);
   }
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
 
-  function update(i: number, patch: Partial<StudentRow>) {
-    setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  }
-  function addRow() {
-    const last = rows[rows.length - 1];
-    setRows([...rows, { studentCode: '', fullName: '', enrollYear: last?.enrollYear ?? 2568 }]);
-  }
-  function removeRow(i: number) {
-    setRows((rs) => rs.filter((_, idx) => idx !== i));
-  }
+  useEffect(() => {
+    loadClassroom();
+    api.get<Term[]>('/teacher/terms').then((ts) => {
+      setTerms(ts);
+      if (!termIdFromUrl && ts[0]) {
+        setTermId(ts[0].id);
+        setUrl({ term: ts[0].id });
+      }
+    });
+    // eslint-disable-next-line
+  }, [id]);
 
-  function parseCsv(text: string) {
-    // รูปแบบ: studentCode,fullName,enrollYear  (1 row ต่อ 1 บรรทัด)
-    const parsed: StudentRow[] = [];
-    for (const line of text.split(/\r?\n/)) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#')) continue;
-      const [code, name, year] = trimmed.split(',').map((s) => s.trim());
-      if (!code || !name) continue;
-      parsed.push({
-        studentCode: code,
-        fullName: name,
-        enrollYear: Number(year) || 2568,
-      });
-    }
-    if (parsed.length === 0) {
-      setError('ไม่พบข้อมูลที่ถูกต้องในไฟล์ CSV');
-      return;
-    }
-    setRows(parsed);
-    setFlash(`โหลด ${parsed.length} แถวจาก CSV เรียบร้อย — กดบันทึกเพื่อยืนยัน`);
+  function setUrl(patch: Record<string, string>) {
+    const params = new URLSearchParams(search);
+    Object.entries(patch).forEach(([k, v]) => params.set(k, v));
+    router.replace(`/teacher/classrooms/${id}?${params.toString()}`);
   }
 
-  function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => parseCsv(String(reader.result ?? ''));
-    reader.readAsText(file, 'utf-8');
+  function selectTab(key: string) {
+    setUrl({ tab: key });
   }
-
-  async function submit() {
-    const valid = rows.filter((r) => r.studentCode.trim() && r.fullName.trim());
-    if (valid.length === 0) { setError('ยังไม่มีข้อมูลนักเรียน'); return; }
-
-    setError(null); setFlash(null); setBusy(true);
-    try {
-      const result = await api.post<{ created: number; total: number; skipped: { studentCode: string; reason: string }[] }>(
-        '/teacher/students/bulk',
-        { classroomId: id, students: valid },
-      );
-      setRows([{ studentCode: '', fullName: '', enrollYear: 2568 }]);
-      const skip = result.skipped.length > 0
-        ? ` (ข้าม ${result.skipped.length}: ${result.skipped.map((s) => `${s.studentCode}=${s.reason}`).join(', ')})`
-        : '';
-      setFlash(`เพิ่ม ${result.created}/${result.total} คน${skip}`);
-      await load();
-    } catch (e) { setError(e instanceof Error ? e.message : 'error'); }
-    finally { setBusy(false); }
+  function selectTerm(newTermId: string) {
+    setTermId(newTermId);
+    setUrl({ term: newTermId });
   }
 
   if (!classroom) return <p className="text-ink-soft">กำลังโหลด...</p>;
 
   return (
     <div>
-      <Link href="/teacher/classrooms" className="text-sm text-ink-soft hover:text-ink">← กลับไปห้องทั้งหมด</Link>
-      <h2 className="mt-2 text-3xl font-bold tracking-tight">{classroom.gradeLevel}/{classroom.section}</h2>
-      <p className="mt-1 text-sm text-ink-soft">ปีการศึกษา {classroom.academicYear} · {classroom._count.students} คน</p>
+      <Link href="/teacher/classrooms" className="text-sm text-ink-soft hover:text-ink">← ห้องทั้งหมด</Link>
 
-      {flash && <div className="mt-4 animate-fade-in rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">{flash}</div>}
-      {error && <div className="mt-4 animate-fade-in rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700">{error}</div>}
-
-      {/* รายชื่อปัจจุบัน */}
-      <h3 className="mt-8 text-lg font-semibold tracking-tight">รายชื่อนักเรียนในห้อง</h3>
-      <table className="table mt-3">
-        <thead>
-          <tr>
-            <th>รหัส</th>
-            <th>ชื่อ-สกุล</th>
-            <th>อีเมล</th>
-          </tr>
-        </thead>
-        <tbody>
-          {classroom.students.length === 0 ? (
-            <tr><td colSpan={3} className="py-8 text-center text-ink-soft">ยังไม่มีนักเรียน</td></tr>
-          ) : classroom.students.map((s) => (
-            <tr key={s.id}>
-              <td className="font-mono text-xs">{s.studentCode}</td>
-              <td>{s.user.fullName}</td>
-              <td className="text-ink-soft">{s.user.email}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* เพิ่มนักเรียน */}
-      <div className="mt-10 flex items-center justify-between">
-        <h3 className="text-lg font-semibold tracking-tight">เพิ่มนักเรียน</h3>
-        <label className="btn-secondary btn-sm cursor-pointer">
-          📁 อัปโหลด CSV
-          <input type="file" accept=".csv,text/csv,.txt" onChange={onUpload} className="hidden" />
-        </label>
-      </div>
-      <p className="mt-1 text-xs text-ink-soft">รูปแบบ CSV: <code className="rounded bg-slate-100 px-1">studentCode,fullName,enrollYear</code> — 1 บรรทัด/คน</p>
-
-      <div className="card mt-3 animate-slide-up p-4">
-        <table className="w-full text-sm">
-          <thead className="text-left text-xs uppercase tracking-wider text-ink-soft">
-            <tr>
-              <th className="pb-2">รหัสนักเรียน</th>
-              <th className="pb-2">ชื่อ-สกุล</th>
-              <th className="pb-2 w-32">ปีเข้าเรียน</th>
-              <th className="pb-2 w-10"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r, i) => (
-              <tr key={i}>
-                <td className="py-1 pr-2">
-                  <input value={r.studentCode} onChange={(e) => update(i, { studentCode: e.target.value })}
-                    placeholder="25680042" className="input" />
-                </td>
-                <td className="py-1 pr-2">
-                  <input value={r.fullName} onChange={(e) => update(i, { fullName: e.target.value })}
-                    placeholder="ด.ช.สมชาย ใจดี" className="input" />
-                </td>
-                <td className="py-1 pr-2">
-                  <input type="number" value={r.enrollYear} onChange={(e) => update(i, { enrollYear: Number(e.target.value) })}
-                    className="input" />
-                </td>
-                <td className="py-1">
-                  {rows.length > 1 && (
-                    <button onClick={() => removeRow(i)} className="text-rose-600 hover:text-rose-800">✕</button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="mt-3 flex justify-between gap-2">
-          <button onClick={addRow} className="btn-ghost btn-sm">+ เพิ่มแถว</button>
-          <button onClick={submit} disabled={busy} className="btn-accent">
-            {busy ? 'กำลังบันทึก...' : `บันทึก ${rows.filter((r) => r.studentCode && r.fullName).length} คน`}
-          </button>
+      <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl">🏫</span>
+            <h2 className="text-3xl font-bold tracking-tight">{classroom.gradeLevel}/{classroom.section}</h2>
+          </div>
+          <p className="mt-1 text-sm text-ink-soft">
+            ปีการศึกษา {classroom.academicYear} · {classroom._count.students} คน
+          </p>
         </div>
-        <p className="mt-2 text-xs text-ink-soft">
-          นักเรียนใหม่จะได้รับอีเมล <code className="rounded bg-slate-100 px-1">[รหัส]@school.ac.th</code> และรหัสผ่านเริ่มต้น <code className="rounded bg-slate-100 px-1">password123</code>
-        </p>
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-medium uppercase tracking-wider text-ink-soft">เทอม</label>
+          <select value={termId} onChange={(e) => selectTerm(e.target.value)} className="input w-44">
+            {terms.map((t) => <option key={t.id} value={t.id}>{t.year} / {t.semester[0]}</option>)}
+          </select>
+        </div>
       </div>
+
+      {/* Tabs */}
+      <div className="mt-6 flex gap-1 overflow-x-auto border-b border-slate-200">
+        {TABS.map((t) => {
+          const active = tab === t.key;
+          return (
+            <button
+              key={t.key}
+              disabled={t.disabled}
+              onClick={() => !t.disabled && selectTab(t.key)}
+              className={`relative whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors duration-150
+                ${active ? 'text-ink' : 'text-ink-soft hover:text-ink'}
+                ${t.disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+            >
+              {t.label}
+              {t.disabled && <span className="ml-1 rounded bg-slate-100 px-1 text-[10px]">soon</span>}
+              {active && (
+                <span className="absolute inset-x-1 -bottom-px h-0.5 rounded-full"
+                  style={{ background: 'linear-gradient(90deg, #B8860B, #D4A017)' }} />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-6 animate-fade-in">
+        {tab === 'roster' && <RosterTab classroom={classroom} onReload={loadClassroom} />}
+        {tab === 'subjects' && termId && <SubjectsTab classroomId={id} termId={termId} gradeLevel={classroom.gradeLevel} />}
+        {tab === 'scores' && termId && <ScoresTab classroomId={id} termId={termId} />}
+        {tab === 'schedule' && <PlaceholderTab title="ตารางเรียน" />}
+        {tab === 'close' && <PlaceholderTab title="ปิดเทอม" />}
+      </div>
+    </div>
+  );
+}
+
+function PlaceholderTab({ title }: { title: string }) {
+  return (
+    <div className="card p-12 text-center">
+      <p className="text-lg font-semibold text-ink">{title}</p>
+      <p className="mt-1 text-sm text-ink-soft">ฟีเจอร์นี้กำลังพัฒนา</p>
     </div>
   );
 }

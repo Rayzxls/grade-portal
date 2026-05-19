@@ -75,8 +75,9 @@ model Classroom {
   homeroomTeacherId  String?
   createdAt          DateTime @default(now())
 
-  homeroomTeacher Teacher?  @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
+  homeroomTeacher Teacher?     @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
   students        Student[]
+  scoreSheets     ScoreSheet[]
 
   @@unique([gradeLevel, section, academicYear])
   @@index([academicYear])
@@ -90,10 +91,11 @@ model Student {
   enrollYear  Int      // ปีที่เข้าเรียน (พ.ศ.)
   createdAt   DateTime @default(now())
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  classroom   Classroom?   @relation(fields: [classroomId], references: [id])
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classroom   Classroom?     @relation(fields: [classroomId], references: [id])
   enrollments Enrollment[]
   grades      Grade[]
+  scores      StudentScore[]
 
   @@index([studentCode])
   @@index([classroomId])
@@ -105,9 +107,10 @@ model Teacher {
   staffCode  String  @unique
   department String
 
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courses   Course[]
-  homerooms Classroom[] @relation("HomeroomTeacher")
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courses     Course[]
+  homerooms   Classroom[]  @relation("HomeroomTeacher")
+  scoreSheets ScoreSheet[]
 }
 
 model Course {
@@ -121,6 +124,7 @@ model Course {
 
   teacher     Teacher      @relation(fields: [teacherId], references: [id])
   enrollments Enrollment[]
+  scoreSheets ScoreSheet[]
 
   @@index([code])
   @@index([gradeLevel])
@@ -134,6 +138,7 @@ model AcademicTerm {
   endDate   DateTime
 
   enrollments Enrollment[]
+  scoreSheets ScoreSheet[]
 
   @@unique([year, semester])
 }
@@ -168,6 +173,59 @@ model Grade {
   enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   student    Student    @relation(fields: [studentId], references: [id])
 
+  @@index([studentId])
+}
+
+// สมุดเก็บคะแนน — 1 เล่ม = 1 วิชา × 1 ห้อง × 1 เทอม
+model ScoreSheet {
+  id             String   @id @default(cuid())
+  classroomId    String
+  courseId       String
+  termId         String
+  ownerTeacherId String
+  finalizedAt    DateTime?  // เมื่อปิดเล่ม → กลายเป็น readonly + Grade ถูกสร้าง
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  classroom Classroom      @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  course    Course         @relation(fields: [courseId], references: [id])
+  term      AcademicTerm   @relation(fields: [termId], references: [id])
+  owner     Teacher        @relation(fields: [ownerTeacherId], references: [id])
+  columns   ScoreColumn[]
+  entries   StudentScore[]
+
+  @@unique([classroomId, courseId, termId])
+  @@index([ownerTeacherId])
+}
+
+model ScoreColumn {
+  id           String  @id @default(cuid())
+  scoreSheetId String
+  name         String  // เช่น "สอบกลางภาค"
+  maxScore     Float   // เช่น 30
+  order        Int
+
+  scoreSheet ScoreSheet     @relation(fields: [scoreSheetId], references: [id], onDelete: Cascade)
+  scores     StudentScore[]
+
+  @@unique([scoreSheetId, order])
+  @@index([scoreSheetId])
+}
+
+model StudentScore {
+  id           String  @id @default(cuid())
+  scoreSheetId String
+  columnId     String
+  studentId    String
+  value        Float?  // null = ยังไม่บันทึก
+  updatedAt    DateTime @updatedAt
+
+  scoreSheet ScoreSheet  @relation(fields: [scoreSheetId], references: [id], onDelete: Cascade)
+  column     ScoreColumn @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  student    Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([columnId, studentId])
+  @@index([scoreSheetId])
   @@index([studentId])
 }
 

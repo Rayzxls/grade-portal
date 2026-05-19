@@ -81,6 +81,80 @@ export const bulkAddStudentsSchema = z.object({
 });
 export type BulkAddStudentsDto = z.infer<typeof bulkAddStudentsSchema>;
 
+// Workspace: เพิ่ม/ลบวิชาให้ห้อง (เทียบเท่า bulk enroll แต่ผ่าน workspace)
+export const addSubjectToClassroomSchema = z.object({
+  courseId: z.string().cuid(),
+  termId: z.string().cuid(),
+});
+export type AddSubjectToClassroomDto = z.infer<typeof addSubjectToClassroomSchema>;
+
+// สมุดเก็บคะแนน — สร้างเล่ม + จัดการ column + บันทึกค่า
+export const createScoreSheetSchema = z.object({
+  courseId: z.string().cuid(),
+  termId: z.string().cuid(),
+  columns: z
+    .array(
+      z.object({
+        name: z.string().min(1).max(40),
+        maxScore: z.number().min(1).max(1000),
+      }),
+    )
+    .min(1)
+    .max(20),
+});
+export type CreateScoreSheetDto = z.infer<typeof createScoreSheetSchema>;
+
+export const updateColumnSchema = z.object({
+  name: z.string().min(1).max(40).optional(),
+  maxScore: z.number().min(1).max(1000).optional(),
+});
+export type UpdateColumnDto = z.infer<typeof updateColumnSchema>;
+
+export const addColumnSchema = z.object({
+  name: z.string().min(1).max(40),
+  maxScore: z.number().min(1).max(1000),
+});
+export type AddColumnDto = z.infer<typeof addColumnSchema>;
+
+export const saveCellsSchema = z.object({
+  cells: z
+    .array(
+      z.object({
+        columnId: z.string().cuid(),
+        studentId: z.string().cuid(),
+        value: z.number().nullable(),
+      }),
+    )
+    .min(1)
+    .max(1000),
+});
+export type SaveCellsDto = z.infer<typeof saveCellsSchema>;
+
+// Default template
+export const DEFAULT_SCORE_COLUMNS = [
+  { name: 'สอบกลางภาค', maxScore: 30 },
+  { name: 'สอบปลายภาค', maxScore: 30 },
+  { name: 'งาน/รายงาน', maxScore: 20 },
+  { name: 'จิตพิสัย', maxScore: 10 },
+  { name: 'สอบย่อย', maxScore: 10 },
+];
+
+// Workspace: บันทึกคะแนนหลายคนพร้อมกัน (null = เคลียร์เกรด)
+export const saveScoresSchema = z.object({
+  courseId: z.string().cuid(),
+  termId: z.string().cuid(),
+  items: z
+    .array(
+      z.object({
+        enrollmentId: z.string().cuid(),
+        score: z.number().min(0).max(100).nullable(),
+      }),
+    )
+    .min(1)
+    .max(200),
+});
+export type SaveScoresDto = z.infer<typeof saveScoresSchema>;
+
 // ลงทะเบียนทั้งห้องเรียนเข้ารายวิชา (1 ปุ่ม → enroll นักเรียนทั้ง 30+ คน)
 export const bulkEnrollClassroomSchema = z.object({
   classroomId: z.string().cuid(),

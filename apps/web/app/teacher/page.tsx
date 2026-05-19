@@ -39,11 +39,15 @@ export default function TeacherHome() {
         <Stat label="นักเรียนรวม" value={stats.students} />
       </div>
 
-      <h3 className="mt-10 text-lg font-semibold tracking-tight">เมนูด่วน</h3>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <QuickLink href="/teacher/classrooms" title="จัดการห้อง" desc="สร้างห้อง / เพิ่มนักเรียน / นำเข้า CSV" />
-        <QuickLink href="/teacher/courses" title="จัดการวิชา" desc="สร้างรายวิชาที่ตัวเองสอน" />
-        <QuickLink href="/teacher/grades" title="บันทึกเกรด" desc="ใส่/แก้คะแนนนักเรียน" />
+      <div className="card mt-10 p-5">
+        <h3 className="font-semibold tracking-tight">แนะนำการใช้งาน</h3>
+        <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-ink-soft">
+          <li>เข้า <Link href="/teacher/classrooms" className="font-semibold text-ink underline">ห้องของฉัน</Link> เพื่อสร้างห้องประจำชั้น</li>
+          <li>กดเข้าห้องที่สร้าง — จะเปิด <span className="font-semibold text-ink">พื้นที่ทำงานส่วนตัวของห้อง</span></li>
+          <li>แท็บ <b>นักเรียน</b>: เพิ่มทีละคน หรือ Upload CSV</li>
+          <li>แท็บ <b>รายวิชา</b>: เพิ่มวิชาที่ห้องนี้เรียน — ระบบลงทะเบียนนักเรียนทุกคนอัตโนมัติ</li>
+          <li>แท็บ <b>คะแนน</b>: ใส่คะแนน ระบบคำนวณเกรดให้ทันที</li>
+        </ol>
       </div>
     </div>
   );
