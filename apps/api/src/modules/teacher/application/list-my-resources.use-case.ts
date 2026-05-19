@@ -1,18 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 
 @Injectable()
 export class ListMyResourcesUseCase {
   constructor(private prisma: PrismaService) {}
 
-  private async teacherIdOf(userId: string): Promise<string> {
+  // คืน null ถ้าไม่มี teacher profile (เช่น admin) — caller ตัดสินว่าจะแสดงอะไร
+  private async teacherIdOf(userId: string): Promise<string | null> {
     const t = await this.prisma.teacher.findUnique({ where: { userId } });
-    if (!t) throw new NotFoundException('ไม่พบโปรไฟล์ครู');
-    return t.id;
+    return t?.id ?? null;
   }
 
   async listMyClassrooms(userId: string) {
     const teacherId = await this.teacherIdOf(userId);
+    if (!teacherId) return []; // admin or non-teacher: empty list
     return this.prisma.classroom.findMany({
       where: { homeroomTeacherId: teacherId },
       include: {
@@ -31,6 +32,7 @@ export class ListMyResourcesUseCase {
 
   async listMyCourses(userId: string) {
     const teacherId = await this.teacherIdOf(userId);
+    if (!teacherId) return [];
     return this.prisma.course.findMany({
       where: { teacherId },
       include: { _count: { select: { enrollments: true } } },

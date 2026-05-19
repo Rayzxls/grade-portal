@@ -131,20 +131,18 @@ export function ScoresTab({ classroomId, termId }: { classroomId: string; termId
       await loadSheet(courseId);
     } catch (e) { setError(e instanceof Error ? e.message : 'error'); }
   }
-  async function editColumnName(col: Column) {
+  async function editColumn(col: Column) {
     if (!sheet) return;
-    const newName = prompt('ชื่อใหม่', col.name);
-    if (!newName || newName === col.name) return;
+    const newName = prompt('ชื่อช่อง', col.name);
+    if (newName === null) return;
+    const maxStr = prompt('คะแนนเต็ม', String(col.maxScore));
+    if (maxStr === null) return;
+    const maxScore = Number(maxStr);
+    if (!maxScore || Number.isNaN(maxScore)) { setError('คะแนนเต็มไม่ถูกต้อง'); return; }
+    if (newName === col.name && maxScore === col.maxScore) return;
     try {
-      await api.put(`/teacher/sheets/${sheet.id}/columns/${col.id}`, { name: newName });
-    } catch {
-      // try PATCH (we use PATCH on backend)
-    }
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/v1/teacher/sheets/${sheet.id}/columns/${col.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
-        body: JSON.stringify({ name: newName }),
+      await api.patch(`/teacher/sheets/${sheet.id}/columns/${col.id}`, {
+        name: newName, maxScore,
       });
       await loadSheet(courseId);
     } catch (e) { setError(e instanceof Error ? e.message : 'error'); }
@@ -270,7 +268,7 @@ export function ScoresTab({ classroomId, termId }: { classroomId: string; termId
                   {sheet.columns.map((c) => (
                     <th key={c.id} className="px-3 py-2 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <button onClick={() => editColumnName(c)} disabled={locked} className="hover:text-ink disabled:cursor-not-allowed">
+                        <button onClick={() => editColumn(c)} disabled={locked} className="hover:text-ink disabled:cursor-not-allowed" title="คลิกเพื่อแก้ชื่อ/คะแนนเต็ม">
                           {c.name}
                         </button>
                         {!locked && (
