@@ -11,6 +11,7 @@ class HealthController {
 import { AuthModule } from './modules/auth/auth.module';
 import { GradeModule } from './modules/grade/grade.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { TeacherModule } from './modules/teacher/teacher.module';
 import { TranscriptModule } from './modules/transcript/transcript.module';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 
@@ -21,6 +22,7 @@ import { PrismaModule } from './infrastructure/prisma/prisma.module';
     AuthModule,
     GradeModule,
     AdminModule,
+    TeacherModule,
     TranscriptModule,
   ],
   controllers: [HealthController],

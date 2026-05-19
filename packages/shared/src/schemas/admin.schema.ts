@@ -47,6 +47,40 @@ export const assignStudentToClassroomSchema = z.object({
 });
 export type AssignStudentToClassroomDto = z.infer<typeof assignStudentToClassroomSchema>;
 
+// Teacher สร้างห้อง — homeroomTeacherId จะถูกตั้งเป็น userId ของผู้สร้างใน controller
+export const teacherCreateClassroomSchema = z.object({
+  gradeLevel: z.string().min(1),
+  section: z.number().int().min(1).max(99),
+  academicYear: z.number().int().min(2500).max(2600),
+});
+export type TeacherCreateClassroomDto = z.infer<typeof teacherCreateClassroomSchema>;
+
+// Teacher สร้างวิชา — teacherId = ตัวเอง
+export const teacherCreateCourseSchema = z.object({
+  code: z.string().min(2),
+  name: z.string().min(1),
+  credits: z.number().int().min(1).max(6),
+  gradeLevel: z.string().min(1),
+});
+export type TeacherCreateCourseDto = z.infer<typeof teacherCreateCourseSchema>;
+
+// Bulk เพิ่มนักเรียนเข้าห้อง (1 row = 1 user + student)
+export const bulkAddStudentsSchema = z.object({
+  classroomId: z.string().cuid(),
+  students: z
+    .array(
+      z.object({
+        studentCode: z.string().min(1),
+        fullName: z.string().min(1),
+        email: z.string().email().optional(), // ไม่ใส่ → gen จาก studentCode
+        enrollYear: z.number().int().min(2500).max(2600),
+      }),
+    )
+    .min(1)
+    .max(100),
+});
+export type BulkAddStudentsDto = z.infer<typeof bulkAddStudentsSchema>;
+
 // ลงทะเบียนทั้งห้องเรียนเข้ารายวิชา (1 ปุ่ม → enroll นักเรียนทั้ง 30+ คน)
 export const bulkEnrollClassroomSchema = z.object({
   classroomId: z.string().cuid(),
