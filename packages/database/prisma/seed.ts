@@ -36,6 +36,22 @@ async function main() {
     include: { teacher: true },
   });
 
+  // Real teacher: KENKEN2517 (พ่อ)
+  const dadPasswordHash = await bcrypt.hash('25172517', 12);
+  await prisma.user.upsert({
+    where: { email: 'KENKEN2517@hotmail.com' },
+    update: {},
+    create: {
+      email: 'KENKEN2517@hotmail.com',
+      passwordHash: dadPasswordHash,
+      role: Role.TEACHER,
+      fullName: 'ครู KENKEN',
+      teacher: {
+        create: { staffCode: 'T2517', department: 'ครูประจำชั้น' },
+      },
+    },
+  });
+
   // Classroom: ม.4/2 ปีการศึกษา 2568 มีครูสมชายเป็นครูประจำชั้น
   const classroom = await prisma.classroom.upsert({
     where: { gradeLevel_section_academicYear: { gradeLevel: 'ม.4', section: 2, academicYear: 2568 } },
