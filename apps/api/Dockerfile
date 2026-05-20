@@ -35,13 +35,9 @@ WORKDIR /app
 RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
-# Copy only what's needed
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages ./packages
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+# Copy the entire built monorepo — pnpm uses symlinks across workspaces
+# so we need node_modules of every workspace, not just root
+COPY --from=builder /app ./
 
 ENV NODE_ENV=production
 EXPOSE 4000
