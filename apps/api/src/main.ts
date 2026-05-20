@@ -11,19 +11,26 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
   // Validation handled by ZodValidationPipe per-route (see modules/*/presentation)
   app.useGlobalFilters(new AllExceptionsFilter());
-  // CORS — รองรับ comma-separated origin list สำหรับ production
-  const origins = (process.env.WEB_ORIGIN ?? 'http://localhost:3000')
+  // CORS — exact origins (comma-separated WEB_ORIGIN) + *.vercel.app + localhost
+  const exactOrigins = (process.env.WEB_ORIGIN ?? 'http://localhost:3000')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
+  const vercelRegex = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
+  const localhostRegex = /^https?:\/\/localhost(:\d+)?$/;
   app.enableCors({
-    origin: origins.length === 1 ? origins[0] : origins,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (exactOrigins.includes(origin)) return callback(null, true);
+      if (vercelRegex.test(origin) || localhostRegex.test(origin)) return callback(null, true);
+      callback(new Error(`CORS blocked: ${origin}`));
+    },
     credentials: true,
   });
 
   const port = Number(process.env.PORT ?? process.env.API_PORT ?? 4000);
   await app.listen(port, '0.0.0.0');
-  Logger.log(`🚀 API ready on port ${port} | CORS: ${origins.join(', ')}`, 'Bootstrap');
+  Logger.log(`🚀 API ready on port ${port} | CORS: ${exactOrigins.join(', ')} + *.vercel.app`, 'Bootstrap');
 }
 
 bootstrap();
