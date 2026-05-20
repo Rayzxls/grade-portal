@@ -1,6 +1,9 @@
 # ─── Stage 1: Build ───
-FROM node:20-alpine AS builder
+# ใช้ Debian (slim) แทน Alpine — Prisma ต้องการ OpenSSL libraries ที่ Alpine ขาด
+FROM node:20-slim AS builder
 WORKDIR /app
+
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Enable corepack for pnpm
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
@@ -26,8 +29,10 @@ RUN pnpm --filter @grade/shared build
 RUN pnpm --filter @grade/api build
 
 # ─── Stage 2: Runtime ───
-FROM node:20-alpine
+FROM node:20-slim
 WORKDIR /app
+
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
 # Copy only what's needed
