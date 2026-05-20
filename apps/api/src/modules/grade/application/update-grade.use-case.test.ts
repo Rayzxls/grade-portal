@@ -9,6 +9,8 @@ describe('UpdateGradeUseCase', () => {
 
   beforeEach(() => {
     prisma = {
+      grade: { findUnique: vi.fn() },
+      user: { findUnique: vi.fn() },
       $transaction: vi.fn(async (cb: (tx: any) => Promise<any>) =>
         cb({
           grade: { update: vi.fn(async ({ data }) => ({ id: 'g1', ...data })) },
@@ -21,13 +23,23 @@ describe('UpdateGradeUseCase', () => {
   });
 
   it('should throw when grade not found', async () => {
-    repo.findById.mockResolvedValue(null);
+    prisma.grade.findUnique.mockResolvedValue(null);
     await expect(useCase.execute('g1', { score: 80 }, 'u1')).rejects.toThrow(NotFoundException);
   });
 
   it('should record audit log with before/after', async () => {
-    repo.findById.mockResolvedValue({
+    prisma.grade.findUnique.mockResolvedValue({
       id: 'g1', score: 70, letter: 'B', gradePoint: 3.0,
+      enrollment: {
+        id: 'e1',
+        course: { teacherId: 'teacher-1' },
+        student: { classroom: { homeroomTeacherId: 'teacher-1' } }
+      }
+    });
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'teacher-1',
+      role: 'ADMIN',
+      teacher: { id: 'teacher-1' }
     });
 
     let captured: any;

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import { formatTerm } from '@/lib/utils';
 
 interface Course { id: string; code: string; name: string; credits: number; gradeLevel: string }
 interface Term { id: string; year: number; semester: string }
@@ -210,7 +211,7 @@ export default function NewClassroomPage() {
           <div>
             <label className="text-sm">เทอม</label>
             <select value={termId} onChange={(e) => setTermId(e.target.value)} className="input mt-1">
-              {terms.map((t) => <option key={t.id} value={t.id}>{t.year} / {t.semester[0]}</option>)}
+              {terms.map((t) => <option key={t.id} value={t.id}>{formatTerm(t.year, t.semester)}</option>)}
             </select>
           </div>
         </div>

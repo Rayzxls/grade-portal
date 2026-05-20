@@ -49,6 +49,18 @@ export class BulkAddStudentsUseCase {
           const dupEmail = await tx.user.findUnique({ where: { email } });
           if (dupEmail) throw new Error('อีเมลซ้ำ');
 
+          // Find all courses and terms already active in this classroom
+          const classroomEnrollments = await tx.enrollment.findMany({
+            where: {
+              student: { classroomId: dto.classroomId },
+            },
+            select: {
+              courseId: true,
+              termId: true,
+            },
+            distinct: ['courseId', 'termId'],
+          });
+
           const user = await tx.user.create({
             data: {
               email,
@@ -63,7 +75,22 @@ export class BulkAddStudentsUseCase {
                 },
               },
             },
+            include: {
+              student: true,
+            },
           });
+
+          // Auto-enroll newly created student into all active courses for the active terms
+          if (user.student && classroomEnrollments.length > 0) {
+            await tx.enrollment.createMany({
+              data: classroomEnrollments.map((ce) => ({
+                studentId: user.student!.id,
+                courseId: ce.courseId,
+                termId: ce.termId,
+              })),
+              skipDuplicates: true,
+            });
+          }
 
           await tx.auditLog.create({
             data: {

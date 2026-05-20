@@ -17,7 +17,11 @@ function ErrBody($exception) {
 function Step($name, $expectFail, $sb) {
   if (-not $PSBoundParameters.ContainsKey('expectFail')) { $expectFail = $false }
   $err = $null; $val = $null
-  try { $val = & $sb } catch { $err = ErrBody $_.Exception }
+  try { $val = & $sb } catch { 
+    $err = ErrBody $_.Exception
+    Write-Host "DEBUG: Step '$name' failed: $_" -ForegroundColor Red
+    Write-Host "DEBUG: Detail: $err" -ForegroundColor Red
+  }
   $passed = if ($expectFail) { $null -ne $err } else { $null -eq $err }
   $script:results += [PSCustomObject]@{
     name = $name
@@ -38,6 +42,17 @@ $h = @{ Authorization = "Bearer $($tLogin.accessToken)"; 'Content-Type' = 'appli
 
 Step 'GET /teacher/classrooms' $false { Invoke-RestMethod "$base/teacher/classrooms" -Headers $h | Out-Null }
 Step 'GET /teacher/courses'    $false { Invoke-RestMethod "$base/teacher/courses" -Headers $h | Out-Null }
+
+# Test Term Creation by Teacher
+$uniqueYear = (Get-Random -Min 2570 -Max 2599)
+$termBody = @{
+  year = $uniqueYear
+  semester = 'SECOND'
+  startDate = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+  endDate = [DateTime]::UtcNow.AddMonths(6).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+} | ConvertTo-Json
+Step 'POST /teacher/terms (create)' $false { Invoke-RestMethod "$base/teacher/terms" -Method Post -Headers $h -Body $termBody | Out-Null }
+
 $terms = Step 'GET /teacher/terms' $false { Invoke-RestMethod "$base/teacher/terms" -Headers $h }
 $termId = $terms[0].id
 

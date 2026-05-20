@@ -18,7 +18,7 @@ interface CreateInput {
 export class ScoreSheetUseCase {
   constructor(private prisma: PrismaService) {}
 
-  private async assertOwnership(classroomId: string, userId: string) {
+  private async assertOwnership(classroomId: string, userId: string, courseId?: string) {
     const [classroom, actor] = await Promise.all([
       this.prisma.classroom.findUnique({ where: { id: classroomId } }),
       this.prisma.user.findUnique({ where: { id: userId }, include: { teacher: true } }),
@@ -26,14 +26,26 @@ export class ScoreSheetUseCase {
     if (!classroom) throw new NotFoundException('ไม่พบห้องเรียน');
     if (!actor) throw new NotFoundException('ไม่พบผู้ใช้');
     if (actor.role === 'ADMIN') return { classroom, teacherId: actor.teacher?.id ?? null };
-    if (actor.role === 'TEACHER' && actor.teacher && classroom.homeroomTeacherId === actor.teacher.id) {
-      return { classroom, teacherId: actor.teacher.id };
+    
+    if (actor.role === 'TEACHER' && actor.teacher) {
+      const teacherId = actor.teacher.id;
+      // 1. Is homeroom teacher?
+      if (classroom.homeroomTeacherId === teacherId) {
+        return { classroom, teacherId };
+      }
+      // 2. Is course teacher?
+      if (courseId) {
+        const course = await this.prisma.course.findUnique({ where: { id: courseId } });
+        if (course && course.teacherId === teacherId) {
+          return { classroom, teacherId };
+        }
+      }
     }
-    throw new ForbiddenException('คุณไม่ใช่ครูประจำชั้นของห้องนี้');
+    throw new ForbiddenException('คุณไม่ใช่ครูประจำชั้นหรือครูผู้สอนประจำวิชานี้');
   }
 
   async getSheet(classroomId: string, courseId: string, termId: string, userId: string) {
-    await this.assertOwnership(classroomId, userId);
+    await this.assertOwnership(classroomId, userId, courseId);
     const sheet = await this.prisma.scoreSheet.findUnique({
       where: { classroomId_courseId_termId: { classroomId, courseId, termId } },
       include: {
@@ -86,7 +98,7 @@ export class ScoreSheetUseCase {
   }
 
   async create(input: CreateInput, userId: string) {
-    const { classroom } = await this.assertOwnership(input.classroomId, userId);
+    const { classroom } = await this.assertOwnership(input.classroomId, userId, input.courseId);
 
     const course = await this.prisma.course.findUnique({ where: { id: input.courseId } });
     if (!course) throw new NotFoundException('ไม่พบรายวิชา');
@@ -122,7 +134,7 @@ export class ScoreSheetUseCase {
       include: { classroom: true },
     });
     if (!sheet) throw new NotFoundException('ไม่พบสมุดคะแนน');
-    await this.assertOwnership(sheet.classroomId, userId);
+    await this.assertOwnership(sheet.classroomId, userId, sheet.courseId);
     if (sheet.finalizedAt) throw new BadRequestException('สมุดคะแนนปิดเล่มแล้ว — แก้ไขไม่ได้');
     return sheet;
   }
@@ -268,7 +280,7 @@ export class ScoreSheetUseCase {
   async reopen(sheetId: string, userId: string) {
     const sheet = await this.prisma.scoreSheet.findUnique({ where: { id: sheetId } });
     if (!sheet) throw new NotFoundException('ไม่พบสมุดคะแนน');
-    await this.assertOwnership(sheet.classroomId, userId);
+    await this.assertOwnership(sheet.classroomId, userId, sheet.courseId);
     await this.prisma.scoreSheet.update({ where: { id: sheetId }, data: { finalizedAt: null } });
     return { ok: true };
   }

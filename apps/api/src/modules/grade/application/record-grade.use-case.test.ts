@@ -11,6 +11,7 @@ describe('RecordGradeUseCase', () => {
   beforeEach(() => {
     prisma = {
       enrollment: { findUnique: vi.fn() },
+      user: { findUnique: vi.fn() },
       $transaction: vi.fn(async (cb: (tx: any) => Promise<any>) =>
         cb({
           grade: { create: vi.fn(async ({ data }) => ({ id: 'g1', ...data })) },
@@ -31,7 +32,12 @@ describe('RecordGradeUseCase', () => {
 
   it('should compute letter A and grade point 4.0 for score 85', async () => {
     prisma.enrollment.findUnique.mockResolvedValue({
-      id: 'e1', studentId: 's1', course: { teacher: {} },
+      id: 'e1', studentId: 's1', course: { teacherId: 'teacher-1' }, student: { classroom: { homeroomTeacherId: 'teacher-1' } }
+    });
+    prisma.user.findUnique.mockResolvedValue({
+      id: teacherUserId,
+      role: 'ADMIN',
+      teacher: { id: 'teacher-1' },
     });
 
     const result = await useCase.execute({ enrollmentId: 'e1', score: 85 }, teacherUserId);
@@ -42,7 +48,12 @@ describe('RecordGradeUseCase', () => {
 
   it('should compute letter F for failing score', async () => {
     prisma.enrollment.findUnique.mockResolvedValue({
-      id: 'e1', studentId: 's1', course: { teacher: {} },
+      id: 'e1', studentId: 's1', course: { teacherId: 'teacher-1' }, student: { classroom: { homeroomTeacherId: 'teacher-1' } }
+    });
+    prisma.user.findUnique.mockResolvedValue({
+      id: teacherUserId,
+      role: 'ADMIN',
+      teacher: { id: 'teacher-1' },
     });
     const result = await useCase.execute({ enrollmentId: 'e1', score: 30 }, teacherUserId);
     expect(result.letter).toBe('F');

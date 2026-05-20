@@ -28,7 +28,10 @@ export class GetMyGradesUseCase {
 
     const grades = await this.repo.findByStudentId(student.id);
     const gpa = calculateGpa(grades.map((g) => ({ credits: g.credits, letter: g.letter })));
-    const totalCredits = grades.reduce((sum, g) => sum + g.credits, 0);
+    const totalCredits = grades.reduce((sum, g) => {
+      if (g.letter === 'W' || g.letter === 'I') return sum;
+      return sum + g.credits;
+    }, 0);
 
     const profile: StudentProfile = {
       studentCode: student.studentCode,

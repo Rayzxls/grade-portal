@@ -21,17 +21,27 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   }
 
   if (!res.ok) {
+    if (res.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('userRole');
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login';
+      }
+    }
+
     let detail = '';
     try {
-      const data = await res.json();
-      detail = data?.error?.message ?? data?.message ?? JSON.stringify(data);
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : null;
+      detail = data?.error?.message ?? data?.message ?? (text || res.statusText);
     } catch {
       detail = res.statusText;
     }
     throw new Error(`${res.status} ${detail}`);
   }
 
-  return res.json();
+  const text = await res.text();
+  return text ? JSON.parse(text) : (null as any);
 }
 
 export async function checkApiHealth(): Promise<boolean> {

@@ -13,6 +13,7 @@ import {
   updateClassroomSchema,
   updateCourseSchema,
   updateStudentSchema,
+  createTermSchema,
   type TeacherCreateClassroomDto,
   type TeacherCreateCourseDto,
   type BulkAddStudentsDto,
@@ -25,6 +26,7 @@ import {
   type UpdateClassroomDto,
   type UpdateCourseDto,
   type UpdateStudentDto,
+  type CreateTermDto,
 } from '@grade/shared';
 import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -169,6 +171,13 @@ export class TeacherController {
   // ---------- Workspace endpoints ----------
   @Get('terms')
   terms() { return this.workspace.listTerms(); }
+
+  @Post('terms')
+  newTerm(
+    @Body(new ZodValidationPipe(createTermSchema)) dto: CreateTermDto,
+  ) {
+    return this.workspace.createTerm(dto);
+  }
 
   @Get('classrooms/:id/subjects')
   subjects(

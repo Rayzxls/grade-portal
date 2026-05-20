@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { formatTerm } from '@/lib/utils';
 
 interface Enrollment {
   id: string;
@@ -134,7 +135,7 @@ export default function EnrollmentsPage() {
             </select>
             <select value={bulk.termId} onChange={(e) => setBulk({ ...bulk, termId: e.target.value })} required className="input">
               <option value="">-- เทอม --</option>
-              {terms.map((t) => <option key={t.id} value={t.id}>{t.year}/{t.semester[0]}</option>)}
+              {terms.map((t) => <option key={t.id} value={t.id}>{formatTerm(t.year, t.semester)}</option>)}
             </select>
             <button type="submit" disabled={loading} className="btn-accent col-span-4">
               {loading ? 'กำลังลงทะเบียน...' : 'ลงทะเบียนทั้งห้อง'}
@@ -156,7 +157,7 @@ export default function EnrollmentsPage() {
           </select>
           <select value={single.termId} onChange={(e) => setSingle({ ...single, termId: e.target.value })} required className="input">
             <option value="">-- เทอม --</option>
-            {terms.map((t) => <option key={t.id} value={t.id}>{t.year}/{t.semester[0]}</option>)}
+            {terms.map((t) => <option key={t.id} value={t.id}>{formatTerm(t.year, t.semester)}</option>)}
           </select>
           <button type="submit" disabled={loading} className="btn-primary btn-sm">+ ลงทะเบียน</button>
         </form>
@@ -180,7 +181,7 @@ export default function EnrollmentsPage() {
               <td className="font-mono text-xs">{e.student.studentCode}</td>
               <td>{e.student.user.fullName}</td>
               <td>{e.course.code} {e.course.name}</td>
-              <td>{e.term.year}/{e.term.semester[0]}</td>
+              <td>{formatTerm(e.term.year, e.term.semester)}</td>
               <td className="text-center">{e.grade ? `${e.grade.score} (${e.grade.letter})` : '-'}</td>
             </tr>
           ))}

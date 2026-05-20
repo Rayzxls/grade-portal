@@ -28,26 +28,62 @@ export default function TeacherHome() {
   }, [router]);
 
   return (
-    <div>
-      <div className="badge-gold">ครู</div>
-      <h2 className="mt-2 text-3xl font-bold tracking-tight">แผงควบคุมของครู</h2>
-      <p className="mt-1 text-sm text-ink-soft">จัดการห้องประจำชั้น รายวิชา และบันทึกเกรด</p>
-
-      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <Stat label="ห้องประจำชั้น" value={stats.classrooms} gold />
-        <Stat label="วิชาที่สอน" value={stats.courses} />
-        <Stat label="นักเรียนรวม" value={stats.students} />
+    <div className="space-y-8 animate-fade-in">
+      <div>
+        <div className="badge-gold">ครูประจำชั้น & ผู้สอน</div>
+        <h2 className="mt-2 text-3xl font-bold tracking-tight">พื้นที่ทำงานของคุณครู</h2>
+        <p className="mt-1 text-sm text-ink-soft">ระบบตั้งค่าและบริหารจัดการข้อมูลนักเรียน รายวิชา และบันทึกเกรดด้วยตัวคุณครูเอง</p>
       </div>
 
-      <div className="card mt-10 p-5">
-        <h3 className="font-semibold tracking-tight">แนะนำการใช้งาน</h3>
-        <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-ink-soft">
-          <li>เข้า <Link href="/teacher/classrooms" className="font-semibold text-ink underline">ห้องของฉัน</Link> เพื่อสร้างห้องประจำชั้น</li>
-          <li>กดเข้าห้องที่สร้าง — จะเปิด <span className="font-semibold text-ink">พื้นที่ทำงานส่วนตัวของห้อง</span></li>
-          <li>แท็บ <b>นักเรียน</b>: เพิ่มทีละคน หรือ Upload CSV</li>
-          <li>แท็บ <b>รายวิชา</b>: เพิ่มวิชาที่ห้องนี้เรียน — ระบบลงทะเบียนนักเรียนทุกคนอัตโนมัติ</li>
-          <li>แท็บ <b>คะแนน</b>: ใส่คะแนน ระบบคำนวณเกรดให้ทันที</li>
-        </ol>
+      {/* Stats row */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <Stat label="ห้องเรียนที่ดูแล" value={stats.classrooms} gold />
+        <Stat label="รายวิชาเรียนที่สร้าง" value={stats.courses} />
+        <Stat label="นักเรียนในระบบ" value={stats.students} />
+      </div>
+
+      {/* Quick Actions */}
+      <div>
+        <h3 className="text-lg font-semibold tracking-tight text-ink">ทางลัดการตั้งค่า (Quick Setup)</h3>
+        <div className="mt-3 grid gap-4 sm:grid-cols-3">
+          <QuickAction
+            href="/teacher/classrooms/new"
+            title="🏫 สร้างห้องเรียนใหม่"
+            desc="กำหนดชั้นเรียน, ลงวิชาเรียน และเพิ่มนักเรียนในที่เดียว"
+          />
+          <QuickAction
+            href="/teacher/courses"
+            title="🎓 จัดการรายวิชาเรียน"
+            desc="สร้าง แก้ไข หรือตั้งค่าวิชาที่คุณครูรับผิดชอบสอน"
+          />
+          <QuickAction
+            href="/teacher/terms"
+            title="📅 ตั้งค่าภาคเรียน"
+            desc="กำหนดวันเริ่ม/สิ้นสุดปีการศึกษาและเทอมที่เปิดสอน"
+          />
+        </div>
+      </div>
+
+      {/* Usage Guideline */}
+      <div className="card p-6 border-gold">
+        <h3 className="font-semibold tracking-tight text-lg text-ink">💡 แนะนำการใช้ระบบแบบดูแลตนเอง (Self-Service)</h3>
+        <div className="mt-4 grid gap-6 md:grid-cols-2">
+          <div>
+            <h4 className="font-bold text-sm text-ink mb-2">ขั้นตอนที่ 1: ตั้งค่าระบบการเรียน</h4>
+            <ol className="list-decimal pl-5 text-sm text-ink-soft space-y-2">
+              <li>เข้าเมนู <Link href="/teacher/terms" className="font-semibold text-ink underline">ภาคเรียน</Link> เพื่อกำหนดปีการศึกษาปัจจุบัน</li>
+              <li>เข้าเมนู <Link href="/teacher/courses" className="font-semibold text-ink underline">วิชาเรียน</Link> เพื่อลงทะเบียนหลักสูตรวิชาที่เปิดสอน</li>
+            </ol>
+          </div>
+          <div>
+            <h4 className="font-bold text-sm text-ink mb-2">ขั้นตอนที่ 2: จัดการห้องเรียนและเกรด</h4>
+            <ol className="list-decimal pl-5 text-sm text-ink-soft space-y-2 flex-1">
+              <li>ไปที่หน้า <Link href="/teacher/classrooms" className="font-semibold text-ink underline">ห้องเรียนของฉัน</Link> เพื่อกำหนดห้องเรียนประจำชั้น</li>
+              <li>นำเข้านักเรียนในแท็บ **นักเรียน** และผูกวิชาเรียนในแท็บ **รายวิชา** (ระบบลงทะเบียนเรียนให้นักเรียนทุกคนโดยอัตโนมัติ!)</li>
+              <li>กรอกคะแนนตัดเกรดในแท็บ **คะแนน** เพื่อปิดสมุดรายงาน</li>
+            </ol>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -55,18 +91,23 @@ export default function TeacherHome() {
 
 function Stat({ label, value, gold }: { label: string; value: number; gold?: boolean }) {
   return (
-    <div className="stat">
-      <p className="stat-label">{label}</p>
-      <p className={gold ? 'stat-value-gold' : 'stat-value'}>{value}</p>
+    <div className="stat card p-5 flex flex-col justify-between">
+      <p className="stat-label text-sm text-ink-soft">{label}</p>
+      <p className={gold ? 'stat-value-gold text-3xl font-extrabold mt-2' : 'stat-value text-3xl font-bold mt-2 text-ink'}>
+        {value}
+      </p>
     </div>
   );
 }
 
-function QuickLink({ href, title, desc }: { href: string; title: string; desc: string }) {
+function QuickAction({ href, title, desc }: { href: string; title: string; desc: string }) {
   return (
-    <Link href={href} className="card group block p-5">
-      <h4 className="font-semibold tracking-tight">{title} <span className="ml-1 inline-block transition-transform group-hover:translate-x-1">→</span></h4>
-      <p className="mt-1 text-sm text-ink-soft">{desc}</p>
+    <Link href={href} className="card group block p-5 hover:border-gold transition-all duration-200">
+      <h4 className="font-semibold tracking-tight text-ink group-hover:text-gold flex items-center justify-between">
+        {title}
+        <span className="ml-1 inline-block transition-transform group-hover:translate-x-1">→</span>
+      </h4>
+      <p className="mt-2 text-sm text-ink-soft">{desc}</p>
     </Link>
   );
 }

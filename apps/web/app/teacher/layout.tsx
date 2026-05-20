@@ -5,7 +5,9 @@ import { usePathname, useRouter } from 'next/navigation';
 
 const NAV = [
   { href: '/teacher', label: 'ภาพรวม' },
-  { href: '/teacher/classrooms', label: 'ห้องของฉัน' },
+  { href: '/teacher/classrooms', label: 'ห้องเรียนของฉัน' },
+  { href: '/teacher/courses', label: 'วิชาเรียน' },
+  { href: '/teacher/terms', label: 'ภาคเรียน' },
 ];
 
 export default function TeacherLayout({ children }: { children: React.ReactNode }) {
