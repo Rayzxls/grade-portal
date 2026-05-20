@@ -13,51 +13,28 @@ interface MyClassroom {
   students: { id: string; studentCode: string; user: { fullName: string; email: string } }[];
 }
 
-const GRADE_LEVELS = ['ป.1','ป.2','ป.3','ป.4','ป.5','ป.6','ม.1','ม.2','ม.3','ม.4','ม.5','ม.6'];
-
 export default function TeacherClassroomsPage() {
   const [items, setItems] = useState<MyClassroom[]>([]);
-  const [form, setForm] = useState({ gradeLevel: 'ม.4', section: '1', academicYear: '2568' });
   const [error, setError] = useState<string | null>(null);
-  const [flash, setFlash] = useState<string | null>(null);
+  const flash: string | null = null;
 
   async function load() {
     setItems(await api.get<MyClassroom[]>('/teacher/classrooms'));
   }
   useEffect(() => { load(); }, []);
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    try {
-      await api.post('/teacher/classrooms', {
-        gradeLevel: form.gradeLevel,
-        section: Number(form.section),
-        academicYear: Number(form.academicYear),
-      });
-      setFlash(`สร้างห้อง ${form.gradeLevel}/${form.section} เรียบร้อย`);
-      setForm({ gradeLevel: 'ม.4', section: '1', academicYear: '2568' });
-      await load();
-      setTimeout(() => setFlash(null), 2500);
-    } catch (e) { setError(e instanceof Error ? e.message : 'error'); }
-  }
-
   return (
     <div>
-      <h2 className="text-3xl font-bold tracking-tight">ห้องประจำชั้นของฉัน</h2>
-      <p className="mt-1 text-sm text-ink-soft">สร้างห้องใหม่ที่คุณเป็นครูประจำชั้น</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">ห้องประจำชั้นของฉัน</h2>
+          <p className="mt-1 text-sm text-ink-soft">สร้างห้องใหม่พร้อมวิชาและนักเรียนในหน้าเดียว</p>
+        </div>
+        <Link href="/teacher/classrooms/new" className="btn-primary">+ สร้างห้องใหม่</Link>
+      </div>
 
       {flash && <div className="mt-4 animate-fade-in rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">{flash}</div>}
       {error && <div className="mt-4 animate-fade-in rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700">{error}</div>}
-
-      <form onSubmit={submit} className="card mt-6 grid animate-slide-up grid-cols-4 gap-2 p-4">
-        <select value={form.gradeLevel} onChange={(e) => setForm({ ...form, gradeLevel: e.target.value })} className="input">
-          {GRADE_LEVELS.map((g) => <option key={g} value={g}>{g}</option>)}
-        </select>
-        <input type="number" placeholder="ห้อง (เลข)" min={1} max={99} value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value })} required className="input" />
-        <input type="number" placeholder="ปีการศึกษา (พ.ศ.)" value={form.academicYear} onChange={(e) => setForm({ ...form, academicYear: e.target.value })} required className="input" />
-        <button type="submit" className="btn-primary btn-sm">+ สร้างห้อง</button>
-      </form>
 
       <div className="mt-8 space-y-4">
         {items.length === 0 && (
