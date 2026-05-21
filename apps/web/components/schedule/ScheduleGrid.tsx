@@ -27,12 +27,15 @@ export function ScheduleGrid({ settings, periods, onCellClick, onBlockClick, onS
   // จันทร์–ศุกร์ เท่านั้น (ไม่รวมเสาร์/อาทิตย์)
   const visibleDays = useMemo(() => DAYS.filter((d) => d.day >= 1 && d.day <= 5), []);
 
-  const totalMinutes = (endHour - startHour) * 60;
-  const periodCount = Math.ceil(totalMinutes / periodMinutes);
+  // คอลัมน์พิเศษ = ช่วง startHour..startHour+1 (1 ชม.)
+  // คาบ 1..N เริ่มที่ startHour+1 เพื่อไม่ให้ซ้ำกับคอลัมน์พิเศษ
+  const periodsStartMin = (startHour + 1) * 60;
+  const totalMinutes = endHour * 60 - periodsStartMin;
+  const periodCount = Math.max(0, Math.ceil(totalMinutes / periodMinutes));
   const periodCols = Array.from({ length: periodCount }, (_, i) => ({
     index: i + 1,
-    startMin: startHour * 60 + i * periodMinutes,
-    endMin: startHour * 60 + (i + 1) * periodMinutes,
+    startMin: periodsStartMin + i * periodMinutes,
+    endMin: periodsStartMin + (i + 1) * periodMinutes,
   }));
 
   const gridWidth = DAY_COL_WIDTH + SPECIAL_COL_WIDTH + periodCount * COL_WIDTH;
@@ -59,7 +62,7 @@ export function ScheduleGrid({ settings, periods, onCellClick, onBlockClick, onS
   }, [periods, visibleDays]);
 
   function minToX(min: number): number {
-    return ((min - startHour * 60) / periodMinutes) * COL_WIDTH;
+    return ((min - periodsStartMin) / periodMinutes) * COL_WIDTH;
   }
 
   function handleCellClick(e: React.MouseEvent<HTMLDivElement>, day: number) {
@@ -68,7 +71,7 @@ export function ScheduleGrid({ settings, periods, onCellClick, onBlockClick, onS
     // snap to 15 min
     const snapPx = COL_WIDTH / (periodMinutes / 15);
     const snappedX = Math.floor(x / snapPx) * snapPx;
-    const min = startHour * 60 + Math.round((snappedX / COL_WIDTH) * periodMinutes);
+    const min = periodsStartMin + Math.round((snappedX / COL_WIDTH) * periodMinutes);
     onCellClick(day, min);
   }
 
@@ -81,16 +84,16 @@ export function ScheduleGrid({ settings, periods, onCellClick, onBlockClick, onS
             style={{ width: DAY_COL_WIDTH }}
             className="flex-shrink-0 px-3 py-2 text-xs font-semibold text-ink-soft border-r border-slate-200"
           >
-            วัน / คาบ
+            วัน
           </div>
           <div
             style={{ width: SPECIAL_COL_WIDTH }}
-            className="flex-shrink-0 flex flex-col items-center justify-center px-1 py-2 border-r border-slate-200"
+            className="flex-shrink-0 flex flex-col items-center justify-center px-1 py-3 border-r border-slate-200"
           >
             <div className="text-[11px] font-bold text-amber-700 truncate w-full text-center" title={specialColLabel}>
               {specialColLabel}
             </div>
-            <div className="text-[10px] text-ink-soft mt-0.5">
+            <div className="text-[10px] text-ink-soft mt-0.5 font-mono">
               {String(startHour).padStart(2, '0')}.00–{String(startHour + 1).padStart(2, '0')}.00
             </div>
           </div>
@@ -98,10 +101,9 @@ export function ScheduleGrid({ settings, periods, onCellClick, onBlockClick, onS
             <div
               key={c.index}
               style={{ width: COL_WIDTH }}
-              className="flex-shrink-0 flex flex-col items-center justify-center px-1 py-2 border-r border-slate-200 last:border-r-0"
+              className="flex-shrink-0 flex items-center justify-center px-1 py-3 border-r border-slate-200 last:border-r-0"
             >
-              <div className="text-sm font-bold text-ink">{c.index}</div>
-              <div className="text-[10px] text-ink-soft mt-0.5 font-mono">
+              <div className="text-xs text-ink-soft font-mono">
                 {String(Math.floor(c.startMin / 60)).padStart(2, '0')}.{String(c.startMin % 60).padStart(2, '0')}–
                 {String(Math.floor(c.endMin / 60)).padStart(2, '0')}.{String(c.endMin % 60).padStart(2, '0')}
               </div>
