@@ -22,12 +22,10 @@ interface Props {
 }
 
 export function ScheduleGrid({ settings, periods, onCellClick, onBlockClick, onSpecialClick }: Props) {
-  const { startHour, endHour, periodMinutes, showSaturday, showSunday, specialColLabel, specialColColor } = settings;
+  const { startHour, endHour, periodMinutes, specialColLabel, specialColColor } = settings;
 
-  const visibleDays = useMemo(
-    () => DAYS.filter((d) => (d.day === 6 ? showSaturday : d.day === 7 ? showSunday : true)),
-    [showSaturday, showSunday],
-  );
+  // จันทร์–ศุกร์ เท่านั้น (ไม่รวมเสาร์/อาทิตย์)
+  const visibleDays = useMemo(() => DAYS.filter((d) => d.day >= 1 && d.day <= 5), []);
 
   const totalMinutes = (endHour - startHour) * 60;
   const periodCount = Math.ceil(totalMinutes / periodMinutes);

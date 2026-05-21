@@ -164,7 +164,7 @@ export function PeriodDialog({
               onChange={(e) => setDayOfWeek(Number(e.target.value))}
               className="input"
             >
-              {DAYS.map((d) => (
+              {DAYS.filter((d) => d.day >= 1 && d.day <= 5).map((d) => (
                 <option key={d.day} value={d.day}>
                   {d.label}
                 </option>

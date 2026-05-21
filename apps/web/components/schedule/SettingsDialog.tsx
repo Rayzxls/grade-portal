@@ -91,24 +91,9 @@ export function SettingsDialog({ open, settings, onClose, onSave }: Props) {
           />
         </F>
 
-        <div className="flex gap-4 mb-4 mt-2">
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={s.showSaturday}
-              onChange={(e) => setS({ ...s, showSaturday: e.target.checked })}
-            />
-            แสดงวันเสาร์
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={s.showSunday}
-              onChange={(e) => setS({ ...s, showSunday: e.target.checked })}
-            />
-            แสดงวันอาทิตย์
-          </label>
-        </div>
+        <p className="text-xs text-ink-soft mt-2 mb-4">
+          ตารางแสดงเฉพาะวันจันทร์–ศุกร์ (ไม่รวมเสาร์/อาทิตย์)
+        </p>
 
         <div className="flex justify-end gap-2">
           <button onClick={onClose} disabled={saving} className="btn-secondary btn-sm">ยกเลิก</button>
