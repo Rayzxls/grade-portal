@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>รายงานสถานะการซ่อมรถ</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: #f1f5f9;
+    color: #1e293b;
+    padding: 24px;
+    font-size: 14px;
+  }
+  .container { max-width: 1600px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .header h1 .subtitle {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 400;
+    margin-left: 12px;
+  }
+
+  /* Stats cards */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: white;
+    padding: 16px;
+    border-radius: 10px;
+    border-left: 4px solid;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .stat-card .label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+  .stat-card .value { font-size: 24px; font-weight: 700; color: #0f172a; }
+  .stat-card.total { border-color: #6366f1; }
+  .stat-card.notstarted { border-color: #94a3b8; }
+  .stat-card.waiting { border-color: #3b82f6; }
+  .stat-card.progress { border-color: #f59e0b; }
+  .stat-card.partial { border-color: #8b5cf6; }
+  .stat-card.paused { border-color: #ef4444; }
+
+  /* Toolbar */
+  .toolbar {
+    background: white;
+    padding: 12px 16px;
+    border-radius: 10px 10px 0 0;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .search {
+    flex: 1;
+    min-width: 240px;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+  }
+  .filter-btn {
+    padding: 8px 14px;
+    border: 1px solid #cbd5e1;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    color: #475569;
+  }
+  .filter-btn:hover { background: #f8fafc; }
+  .filter-btn.active { background: #6366f1; color: white; border-color: #6366f1; }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 16px;
+    padding: 12px 16px;
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+    font-size: 12px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-notstarted { background: #cbd5e1; }
+  .dot-waiting { background: #3b82f6; }
+  .dot-progress { background: #f59e0b; }
+  .dot-partial { background: #8b5cf6; }
+  .dot-paused { background: #ef4444; }
+  .dot-done { background: #10b981; }
+
+  /* Table */
+  .table-wrapper {
+    background: white;
+    border-radius: 0 0 10px 10px;
+    overflow: auto;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  table { width: 100%; border-collapse: collapse; min-width: 1400px; }
+  thead {
+    background: #f8fafc;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  th {
+    padding: 12px 8px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+  }
+  th.step { text-align: center; min-width: 70px; }
+  td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+    vertical-align: middle;
+  }
+  td.step { text-align: center; min-width: 70px; }
+  tr:hover td { background: #fafbff; }
+
+  /* Vehicle info */
+  .plate {
+    font-weight: 600;
+    color: #0f172a;
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: inline-block;
+    font-size: 13px;
+  }
+  .model { font-weight: 500; color: #1e293b; }
+  .customer { color: #64748b; font-size: 12px; }
+
+  /* Due date */
+  .due {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+  }
+  .due-overdue { background: #fee2e2; color: #b91c1c; }
+  .due-soon { background: #fef3c7; color: #92400e; }
+  .due-ok { background: #dcfce7; color: #166534; }
+
+  /* Severity badge */
+  .severity {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .sev-light { background: #e0f2fe; color: #0369a1; }
+  .sev-medium { background: #fef3c7; color: #92400e; }
+  .sev-heavy { background: #fee2e2; color: #b91c1c; }
+
+  /* Step status cell */
+  .step-cell {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    min-width: 56px;
+  }
+  .step-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .step-label { font-size: 10px; color: #64748b; }
+  .step-percent { font-size: 10px; font-weight: 600; }
+
+  .s-done    { background: #dcfce7; }
+  .s-done    .step-icon { background: #10b981; }
+  .s-progress{ background: #fef3c7; }
+  .s-progress .step-icon { background: #f59e0b; }
+  .s-partial { background: #ede9fe; }
+  .s-partial .step-icon { background: #8b5cf6; }
+  .s-waiting { background: #dbeafe; }
+  .s-waiting .step-icon { background: #3b82f6; }
+  .s-paused  { background: #fee2e2; }
+  .s-paused  .step-icon { background: #ef4444; }
+
+  /* Overall progress bar */
+  .progress-bar {
+    width: 80px;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>รายงานสถานะการซ่อมรถ <span class="subtitle">อัปเดตล่าสุด: 21 พ.ค. 2569 • 10 รายการ</span></h1>
+    <div style="display:flex; gap:8px;">
+      <button class="filter-btn">📥 Export</button>
+      <button class="filter-btn" style="background:#6366f1; color:white; border-color:#6366f1;">+ เพิ่มรายการ</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card total"><div class="label">รวมทั้งหมด</div><div class="value">10</div></div>
+    <div class="stat-card notstarted"><div class="label">ยังไม่เริ่ม</div><div class="value">2</div></div>
+    <div class="stat-card waiting"><div class="label">รอเริ่มงาน</div><div class="value">3</div></div>
+    <div class="stat-card progress"><div class="label">กำลังซ่อม</div><div class="value">4</div></div>
+    <div class="stat-card partial"><div class="label">เสร็จขั้นตอน</div><div class="value">5</div></div>
+    <div class="stat-card paused"><div class="label">หยุดชั่วคราว</div><div class="value">1</div></div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input class="search" placeholder="🔍 ค้นหาทะเบียน, ลูกค้า, ยี่ห้อ...">
+    <button class="filter-btn active">ทั้งหมด</button>
+    <button class="filter-btn">เกินกำหนด</button>
+    <button class="filter-btn">ใกล้ครบกำหนด</button>
+    <button class="filter-btn">กำลังซ่อม</button>
+    <button class="filter-btn">รอ QC</button>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot dot-notstarted"></span>ยังไม่เริ่ม</div>
+    <div class="legend-item"><span class="legend-dot dot-waiting"></span>รอเริ่มงาน</div>
+    <div class="legend-item"><span class="legend-dot dot-progress"></span>กำลังซ่อม</div>
+    <div class="legend-item"><span class="legend-dot dot-partial"></span>เสร็จในขั้นตอน</div>
+    <div class="legend-item"><span class="legend-dot dot-paused"></span>หยุดชั่วคราว</div>
+    <div class="legend-item"><span class="legend-dot dot-done"></span>เสร็จสมบูรณ์</div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ทะเบียน / รถ</th>
+          <th>ลูกค้า</th>
+          <th>รับ-นัดหมาย</th>
+          <th>ระดับ</th>
+          <th>ความคืบหน้า</th>
+          <th class="step">ออกซ่อม</th>
+          <th class="step">รื้อ</th>
+          <th class="step">เคาะ</th>
+          <th class="step">โป้ว</th>
+          <th class="step">พื้น</th>
+          <th class="step">ผสมสี</th>
+          <th class="step">พ่น</th>
+          <th class="step">ประกอบ</th>
+          <th class="step">ขัดสี</th>
+          <th class="step">ล้าง</th>
+          <th class="step">QC</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Row 1 -->
+        <tr>
+          <td>
+            <div class="plate">ฉฉ 1234</div>
+            <div class="model" style="margin-top:4px;">TOYOTA Hilux Vigo</div>
+          </td>
+          <td>
+            <div>เงินสด/บริษัท</div>
+            <div class="customer">เสริมสุข จำกัด</div>
+          </td>
+          <td>
+            <div class="customer">รับ: 27/08/2561</div>
+            <div class="due due-overdue">นัด 26/01/2562</div>
+          </td>
+          <td></td>
+          <td><b>45%</b><div class="progress-bar"><div class="progress-fill" style="width:45%"></div></div></td>
+          <td class="step"></td>
+          <td class="step"><div class="step-cell s-progress"><div class="step-icon">⟳</div><div class="step-percent">20%</div><div class="step-label">ส่ง/อู่</div></div></td>
+          <td class="step"><div class="step-cell s-progress"><div class="step-icon">⟳</div><div class="step-percent">40%</div></div></td>
+          <td class="step"></td>
+          <td class="step"></td>
+          <td class="step"><div class="step-cell s-done"><div class="step-icon">✓</div><div class="step-label">ส่ง</div></div></td>
+          <td class="step"></td>
+          <td class="step"></td>
+          <td class="step"></td>
+          <td class="step"></td>
+          <td class="step"><div class="step-cell s-done"><div class="step-icon">✓</div><div class="step-label">แป้ง</div></div></td>
+        </tr>
+        <!-- Row 2 -->
+        <tr>
+          <td>
+            <div class="plate">ฉฉ 1234</div>
+            <div class="model" style="margin-top:4px;">TOYOTA Hilux Vigo</div>
+          </td>
+          <td>
+            <div>กรุงเทพประกันภัย</div>
+          </td>
+          <td>
+            <div class="customer">รับ: 27/06/2561</div>
+            <div class="due due-overdue">นัด 12/02/2562</div>
+          </td>
+          <td></td>
+          <td><b>55%</b><div class="progress-bar"><div class="progress-fill" style="width:55%"></div></div></td>
+          <td class="step"></td>
+          <td class="step"><div class="step-cell s-done"><div class="step-icon">✓</div><div class="step-label">หลง</div></div></td>
+          <td class="step"><div class="step-cell s-progress"><div class="step-icon">⟳</div><div class="step-percent">40%</div></div></td>
+          <td class="step"></td>
+          <td class="step"></td>
+          <td class="step"></td>
+          <td class="step"><div class="step-cell s-progress"><div class="step-icon">⟳</div><div class="step-percent">20%</div><div class="step-label">เลิม</div></div></td>
+          <td class="step"><div class="step-cell s-progress"><div class="step-icon">⟳</div><div class="step-percent">40%</div></div></td>
+          <td class="step"></td>
+          <td class="step"></td>
+          <td class="step"></td>
+        </tr>
+        <!-- Row 3 -->
+        <tr>
+          <td>
+            <div class="plate">61-1068 กท</div>
+            <div class="model" style="margin-top:4px;">CITROEN C5</div>
+          </td>
+          <td>
+            <div>เงินสด/บริษัท</div>
+            <div class="customer">เอ็น.อี. (1992) จำกัด</div>
+          </td>
+          <td>
+            <div class="customer">รับ: 24/04/2561</div>
+            <div class="due due-overdue">นัด 27/02/2562</div>
+          </td>
+          <td></td>
+          <td><b>30%</b><div class="progress-bar"><div class="progress-fill" style="width:30%"></div></div></td>
+          <td class="step"><div class="step-cell s-done"><div class="step-icon">✓</div><div class="step-label">แป้ง</div></div></td>
+          <td class="step"><div class="step-cell s-done"><div class="step-icon">✓</div></div></td>
+          <td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td>
+        </tr>
+        <!-- Row 4 -->
+        <tr>
+          <td>
+            <div class="plate">74-5794</div>
+            <div class="model" style="margin-top:4px;">SUZUKI Caribian</div>
+          </td>
+          <td>
+            <div>เงินสด/บริษัท</div>
+            <div class="customer">เอ็น.อี. (1992) จำกัด</div>
+          </td>
+          <td>
+            <div class="customer">รับ: 24/04/2561</div>
+            <div class="due due-overdue">นัด 25/06/2561</div>
+          </td>
+          <td></td>
+          <td><b>50%</b><div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div></td>
+          <td class="step"></td>
+          <td class="step"><div class="step-cell s-done"><div class="step-icon">✓</div></div></td>
+          <td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td>
+          <td class="step"><div class="step-cell s-progress"><div class="step-icon">⟳</div><div class="step-percent">61%</div><div class="step-label">ลุ้ย</div></div></td>
+          <td class="step"><div class="step-cell s-progress"><div class="step-icon">⟳</div><div class="step-percent">61%</div><div class="step-label">จวบ</div></div></td>
+          <td class="step"></td><td class="step"></td><td class="step"></td>
+        </tr>
+        <!-- Row 5 -->
+        <tr>
+          <td>
+            <div class="plate">77-3724 กทม</div>
+            <div class="model" style="margin-top:4px;">AUDI A1</div>
+          </td>
+          <td><div>กมลประกันภัย</div></td>
+          <td>
+            <div class="customer">รับ: 24/04/2561</div>
+            <div class="due due-overdue">นัด 18/02/2564</div>
+          </td>
+          <td></td>
+          <td><b>0%</b><div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div></td>
+          <td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td>
+        </tr>
+        <!-- Row 6 -->
+        <tr>
+          <td>
+            <div class="plate">กข 1234</div>
+            <div class="model" style="margin-top:4px;">NISSAN Almera</div>
+          </td>
+          <td><div>กรุงเทพประกันภัย</div></td>
+          <td>
+            <div class="customer">รับ: 24/03/2563</div>
+            <div class="due due-overdue">นัด 04/04/2563</div>
+          </td>
+          <td></td>
+          <td><b>20%</b><div class="progress-bar"><div class="progress-fill" style="width:20%"></div></div></td>
+          <td class="step"></td>
+          <td class="step"><div class="step-cell s-done"><div class="step-icon">✓</div><div class="step-label">พน</div></div></td>
+          <td class="step"><div class="step-cell s-done"><div class="step-icon">✓</div></div></td>
+          <td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td>
+        </tr>
+        <!-- Row 7 -->
+        <tr>
+          <td>
+            <div class="plate">dd1234 กทม</div>
+            <div class="model" style="margin-top:4px;">NISSAN Almera</div>
+          </td>
+          <td><div>กรุงเทพประกันภัย</div></td>
+          <td>
+            <div class="customer">รับ: 20/05/2569</div>
+            <div class="due due-soon">นัด 24/05/2569</div>
+          </td>
+          <td><span class="severity sev-light">ชนเบา</span></td>
+          <td><b>10%</b><div class="progress-bar"><div class="progress-fill" style="width:10%"></div></div></td>
+          <td class="step"><div class="step-cell s-done"><div class="step-icon">✓</div><div class="step-label">จวบ2</div></div></td>
+          <td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td>
+        </tr>
+        <!-- Row 8 -->
+        <tr>
+          <td>
+            <div class="plate">กข1120</div>
+            <div class="model" style="margin-top:4px;">HONDA ACCORD</div>
+          </td>
+          <td><div>สินมั่นคงประกันภัย</div></td>
+          <td>
+            <div class="customer">รับ: 10/01/2561</div>
+            <div class="due due-overdue">นัด 01/03/2562</div>
+          </td>
+          <td></td>
+          <td><b>15%</b><div class="progress-bar"><div class="progress-fill" style="width:15%"></div></div></td>
+          <td class="step"><div class="step-cell s-progress"><div class="step-icon">⟳</div><div class="step-percent">0%</div></div></td>
+          <td class="step"><div class="step-cell s-done"><div class="step-icon">✓</div><div class="step-label">หมา/พน</div></div></td>
+          <td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td>
+        </tr>
+        <!-- Row 9 -->
+        <tr>
+          <td>
+            <div class="plate">นข-1914</div>
+            <div class="model" style="margin-top:4px;">TOYOTA COMMUTER</div>
+          </td>
+          <td><div>สินมั่นคงประกันภัย</div></td>
+          <td>
+            <div class="customer">รับ: 08/12/2561</div>
+            <div class="due due-overdue">นัด 18/10/2559</div>
+          </td>
+          <td><span class="severity sev-light">ชนเบา</span></td>
+          <td><b>65%</b><div class="progress-bar"><div class="progress-fill" style="width:65%"></div></div></td>
+          <td class="step"><div class="step-cell s-progress"><div class="step-icon">⟳</div><div class="step-percent">61%</div></div></td>
+          <td class="step"></td><td class="step"></td>
+          <td class="step"><div class="step-cell s-done"><div class="step-icon">✓</div></div></td>
+          <td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td>
+        </tr>
+        <!-- Row 10 -->
+        <tr>
+          <td>
+            <div class="plate">ขฉ-9938 นม</div>
+            <div class="model" style="margin-top:4px;">BMW 318i</div>
+          </td>
+          <td><div>กมลประกันภัย</div></td>
+          <td>
+            <div class="customer">รับ: 06/04/2561</div>
+            <div class="due due-overdue">นัด 10/02/2564</div>
+          </td>
+          <td></td>
+          <td><b>10%</b><div class="progress-bar"><div class="progress-fill" style="width:10%"></div></div></td>
+          <td class="step"></td>
+          <td class="step"><div class="step-cell s-progress"><div class="step-icon">⟳</div><div class="step-percent">0%</div><div class="step-label">จวบ/หมา</div></div></td>
+          <td class="step"></td><td class="step"></td>
+          <td class="step"><div class="step-cell s-progress"><div class="step-icon">⟳</div><div class="step-percent">20%</div></div></td>
+          <td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td><td class="step"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>
