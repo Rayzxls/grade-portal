@@ -102,7 +102,7 @@ export function PeriodDialog({
         endMinutes: em,
         kind,
         subjectId: kind === 'TEACHING' ? subjectId : null,
-        classroomId: kind === 'TEACHING' ? classroomId || null : null,
+        classroomId: classroomId || null,
         room: room.trim() || null,
         title: kind !== 'TEACHING' ? title.trim() : null,
         color,
@@ -148,10 +148,10 @@ export function PeriodDialog({
             <label className="block text-xs font-semibold text-ink-soft mb-1.5">ประเภท</label>
             <div className="flex gap-2">
               <KindBtn active={kind === 'TEACHING'} onClick={() => setKind('TEACHING')}>
-                📚 คาบสอน
+                📚 วิชาในระบบ
               </KindBtn>
               <KindBtn active={kind === 'ACTIVITY'} onClick={() => setKind('ACTIVITY')}>
-                🎯 กิจกรรม
+                ✏️ พิมพ์เอง
               </KindBtn>
             </div>
           </div>
@@ -233,14 +233,40 @@ export function PeriodDialog({
             </div>
           </>
         ) : (
-          <Field label="ชื่อกิจกรรม *">
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="เช่น ประชุมครู, ติวฯ, กิจกรรมเข้าแถว"
-              className="input"
-            />
-          </Field>
+          <>
+            <Field label="ชื่อ/รหัส *">
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="เช่น แนะแนว, ประชุม, ติวเข้ม, HOMEROOM"
+                className="input"
+              />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="ห้องเรียน (ถ้ามี)">
+                <select
+                  value={classroomId}
+                  onChange={(e) => setClassroomId(e.target.value)}
+                  className="input"
+                >
+                  <option value="">— ไม่ระบุ —</option>
+                  {classrooms.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.gradeLevel}/{c.section}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="ห้อง (Room)">
+                <input
+                  value={room}
+                  onChange={(e) => setRoom(e.target.value)}
+                  placeholder="เช่น 321"
+                  className="input"
+                />
+              </Field>
+            </div>
+          </>
         )}
 
         <Field label="สี">
