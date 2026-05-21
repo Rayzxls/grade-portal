@@ -25,14 +25,20 @@ enum GradeLetter {
   D_PLUS
   D
   F
-  W   // Withdraw
-  I   // Incomplete
+  W // Withdraw
+  I // Incomplete
 }
 
 enum Semester {
   FIRST
   SECOND
   SUMMER
+}
+
+enum PeriodKind {
+  TEACHING // คาบสอน — มี subject/classroom
+  ACTIVITY // กิจกรรม/ติว/ประชุม
+  SPECIAL // คอลัมน์พิเศษเช่นกิจกรรมเข้าแถว (ปักหมุดทุกวัน)
 }
 
 // ============ Core Models ============
@@ -46,21 +52,21 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  student      Student?
-  teacher      Teacher?
-  auditLogs    AuditLog[]
+  student       Student?
+  teacher       Teacher?
+  auditLogs     AuditLog[]
   refreshTokens RefreshToken[]
 
   @@index([role])
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  tokenHash String   @unique
+  tokenHash String    @unique
   expiresAt DateTime
   revokedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -69,16 +75,17 @@ model RefreshToken {
 
 // ชั้นเรียน (ป.1/1, ม.4/2 ...) ต่อปีการศึกษา
 model Classroom {
-  id                 String   @id @default(cuid())
-  gradeLevel         String   // เช่น "ป.1", "ม.4"
-  section            Int      // ห้อง: 1, 2, 3 ...
-  academicYear       Int      // ปีการศึกษา พ.ศ. เช่น 2568
-  homeroomTeacherId  String?
-  createdAt          DateTime @default(now())
+  id                String   @id @default(cuid())
+  gradeLevel        String // เช่น "ป.1", "ม.4"
+  section           Int // ห้อง: 1, 2, 3 ...
+  academicYear      Int // ปีการศึกษา พ.ศ. เช่น 2568
+  homeroomTeacherId String?
+  createdAt         DateTime @default(now())
 
-  homeroomTeacher Teacher?     @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
+  homeroomTeacher Teacher?         @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
   students        Student[]
   scoreSheets     ScoreSheet[]
+  schedulePeriods SchedulePeriod[]
 
   @@unique([gradeLevel, section, academicYear])
   @@index([academicYear])
@@ -89,7 +96,7 @@ model Student {
   userId      String   @unique
   studentCode String   @unique // รหัสนักเรียน
   classroomId String?
-  enrollYear  Int      // ปีที่เข้าเรียน (พ.ศ.)
+  enrollYear  Int // ปีที่เข้าเรียน (พ.ศ.)
   createdAt   DateTime @default(now())
 
   user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -103,15 +110,17 @@ model Student {
 }
 
 model Teacher {
-  id         String  @id @default(cuid())
-  userId     String  @unique
-  staffCode  String  @unique
+  id         String @id @default(cuid())
+  userId     String @unique
+  staffCode  String @unique
   department String
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courses     Course[]
-  homerooms   Classroom[]  @relation("HomeroomTeacher")
-  scoreSheets ScoreSheet[]
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courses          Course[]
+  homerooms        Classroom[]       @relation("HomeroomTeacher")
+  scoreSheets      ScoreSheet[]
+  schedulePeriods  SchedulePeriod[]
+  scheduleSettings ScheduleSettings?
 }
 
 model Course {
@@ -119,13 +128,14 @@ model Course {
   code       String   @unique // เช่น MATH-M4-001
   name       String
   credits    Int
-  gradeLevel String   // ชั้นที่เรียนวิชานี้ เช่น "ม.4"
+  gradeLevel String // ชั้นที่เรียนวิชานี้ เช่น "ม.4"
   teacherId  String
   createdAt  DateTime @default(now())
 
-  teacher     Teacher      @relation(fields: [teacherId], references: [id])
-  enrollments Enrollment[]
-  scoreSheets ScoreSheet[]
+  teacher         Teacher          @relation(fields: [teacherId], references: [id])
+  enrollments     Enrollment[]
+  scoreSheets     ScoreSheet[]
+  schedulePeriods SchedulePeriod[]
 
   @@index([code])
   @@index([gradeLevel])
@@ -133,7 +143,7 @@ model Course {
 
 model AcademicTerm {
   id        String   @id @default(cuid())
-  year      Int      // ปีการศึกษา เช่น 2568
+  year      Int // ปีการศึกษา เช่น 2568
   semester  Semester
   startDate DateTime
   endDate   DateTime
@@ -163,11 +173,11 @@ model Enrollment {
 model Grade {
   id           String      @id @default(cuid())
   enrollmentId String      @unique
-  studentId    String      // denormalized เพื่อ query เร็ว
-  score        Float       // 0-100
+  studentId    String // denormalized เพื่อ query เร็ว
+  score        Float // 0-100
   letter       GradeLetter
-  gradePoint   Float       // 4.0, 3.5, 3.0 ...
-  recordedById String      // teacher user id
+  gradePoint   Float // 4.0, 3.5, 3.0 ...
+  recordedById String // teacher user id
   recordedAt   DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
@@ -179,14 +189,14 @@ model Grade {
 
 // สมุดเก็บคะแนน — 1 เล่ม = 1 วิชา × 1 ห้อง × 1 เทอม
 model ScoreSheet {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   classroomId    String
   courseId       String
   termId         String
   ownerTeacherId String
-  finalizedAt    DateTime?  // เมื่อปิดเล่ม → กลายเป็น readonly + Grade ถูกสร้าง
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  finalizedAt    DateTime? // เมื่อปิดเล่ม → กลายเป็น readonly + Grade ถูกสร้าง
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   classroom Classroom      @relation(fields: [classroomId], references: [id], onDelete: Cascade)
   course    Course         @relation(fields: [courseId], references: [id])
@@ -200,10 +210,10 @@ model ScoreSheet {
 }
 
 model ScoreColumn {
-  id           String  @id @default(cuid())
+  id           String @id @default(cuid())
   scoreSheetId String
-  name         String  // เช่น "สอบกลางภาค"
-  maxScore     Float   // เช่น 30
+  name         String // เช่น "สอบกลางภาค"
+  maxScore     Float // เช่น 30
   order        Int
 
   scoreSheet ScoreSheet     @relation(fields: [scoreSheetId], references: [id], onDelete: Cascade)
@@ -214,11 +224,11 @@ model ScoreColumn {
 }
 
 model StudentScore {
-  id           String  @id @default(cuid())
+  id           String   @id @default(cuid())
   scoreSheetId String
   columnId     String
   studentId    String
-  value        Float?  // null = ยังไม่บันทึก
+  value        Float? // null = ยังไม่บันทึก
   updatedAt    DateTime @updatedAt
 
   scoreSheet ScoreSheet  @relation(fields: [scoreSheetId], references: [id], onDelete: Cascade)
@@ -233,8 +243,8 @@ model StudentScore {
 model AuditLog {
   id         String   @id @default(cuid())
   actorId    String
-  action     String   // GRADE_CREATE, GRADE_UPDATE, GRADE_DELETE
-  entityType String   // Grade, User, ...
+  action     String // GRADE_CREATE, GRADE_UPDATE, GRADE_DELETE
+  entityType String // Grade, User, ...
   entityId   String
   before     Json?
   after      Json?
@@ -246,4 +256,48 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([actorId])
   @@index([createdAt])
+}
+
+// ============ Schedule (Teacher Workspace) ============
+// ตั้งค่าตารางสอนของครูแต่ละคน (1 ครู : 1 settings)
+model ScheduleSettings {
+  id              String   @id @default(cuid())
+  teacherId       String   @unique
+  startHour       Int      @default(7) // เริ่มแสดงตาราง (โมง)
+  endHour         Int      @default(21) // จบที่ (โมง)
+  periodMinutes   Int      @default(60) // ความยาว 1 คาบ (นาที)
+  showSaturday    Boolean  @default(true)
+  showSunday      Boolean  @default(false)
+  specialColLabel String   @default("กิจกรรมเข้าแถว")
+  specialColColor String   @default("#FEF3C7")
+  updatedAt       DateTime @updatedAt
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+}
+
+// คาบสอนรายตัว — เก็บเป็นนาทีจาก startOfDay (00:00) เพื่อรองรับ 15-min snap
+model SchedulePeriod {
+  id           String     @id @default(cuid())
+  teacherId    String
+  academicYear Int // 2569
+  semester     Semester // FIRST/SECOND/SUMMER
+  dayOfWeek    Int // 1=จันทร์ ... 7=อาทิตย์
+  startMinutes Int // นาทีจาก 00:00 เช่น 08:00 = 480
+  endMinutes   Int // exclusive
+  kind         PeriodKind @default(TEACHING)
+  subjectId    String? // -> Course
+  classroomId  String?
+  room         String? // เช่น "321"
+  title        String? // ใช้กรณี ACTIVITY/SPECIAL
+  color        String     @default("#D1FAE5")
+  note         String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  teacher   Teacher    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject   Course?    @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  classroom Classroom? @relation(fields: [classroomId], references: [id], onDelete: SetNull)
+
+  @@index([teacherId, academicYear, semester])
+  @@index([teacherId, dayOfWeek])
 }

@@ -14,6 +14,11 @@ import {
   updateCourseSchema,
   updateStudentSchema,
   createTermSchema,
+  updateScheduleSettingsSchema,
+  createSchedulePeriodSchema,
+  updateSchedulePeriodSchema,
+  listSchedulePeriodsSchema,
+  copyScheduleSchema,
   type TeacherCreateClassroomDto,
   type TeacherCreateCourseDto,
   type BulkAddStudentsDto,
@@ -27,6 +32,11 @@ import {
   type UpdateCourseDto,
   type UpdateStudentDto,
   type CreateTermDto,
+  type UpdateScheduleSettingsDto,
+  type CreateSchedulePeriodDto,
+  type UpdateSchedulePeriodDto,
+  type ListSchedulePeriodsDto,
+  type CopyScheduleDto,
 } from '@grade/shared';
 import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -39,6 +49,7 @@ import { BulkAddStudentsUseCase } from '../application/bulk-add-students.use-cas
 import { ClassroomWorkspaceUseCase } from '../application/classroom-workspace.use-case';
 import { ScoreSheetUseCase } from '../application/score-sheet.use-case';
 import { TeacherCrudUseCase } from '../application/crud.use-case';
+import { ScheduleUseCase } from '../application/schedule.use-case';
 
 @Controller('teacher')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -52,7 +63,60 @@ export class TeacherController {
     private workspace: ClassroomWorkspaceUseCase,
     private sheets: ScoreSheetUseCase,
     private crud: TeacherCrudUseCase,
+    private schedule: ScheduleUseCase,
   ) {}
+
+  // ---------- Schedule (Workspace) ----------
+  @Get('schedule/settings')
+  getScheduleSettings(@CurrentUser() user: AuthenticatedUser) {
+    return this.schedule.getSettings(user.id);
+  }
+
+  @Patch('schedule/settings')
+  updateScheduleSettings(
+    @Body(new ZodValidationPipe(updateScheduleSettingsSchema)) dto: UpdateScheduleSettingsDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.schedule.updateSettings(user.id, dto);
+  }
+
+  @Get('schedule/periods')
+  listSchedulePeriods(
+    @Query(new ZodValidationPipe(listSchedulePeriodsSchema)) query: ListSchedulePeriodsDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.schedule.listPeriods(user.id, query);
+  }
+
+  @Post('schedule/periods')
+  createSchedulePeriod(
+    @Body(new ZodValidationPipe(createSchedulePeriodSchema)) dto: CreateSchedulePeriodDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.schedule.createPeriod(user.id, dto);
+  }
+
+  @Patch('schedule/periods/:id')
+  updateSchedulePeriod(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(updateSchedulePeriodSchema)) dto: UpdateSchedulePeriodDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.schedule.updatePeriod(user.id, id, dto);
+  }
+
+  @Delete('schedule/periods/:id')
+  deleteSchedulePeriod(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.schedule.deletePeriod(user.id, id);
+  }
+
+  @Post('schedule/copy')
+  copySchedule(
+    @Body(new ZodValidationPipe(copyScheduleSchema)) dto: CopyScheduleDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.schedule.copySchedule(user.id, dto);
+  }
 
   // ---------- CRUD: Update + Delete ----------
   @Patch('classrooms/:id')

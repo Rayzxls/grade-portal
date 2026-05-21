@@ -61,6 +61,11 @@ export default function TeacherHome() {
             title="📅 ตั้งค่าภาคเรียน"
             desc="กำหนดวันเริ่ม/สิ้นสุดปีการศึกษาและเทอมที่เปิดสอน"
           />
+          <QuickAction
+            href="/teacher/schedule"
+            title="🗓 ตารางสอน"
+            desc="วางตารางสอนรายสัปดาห์แบบ Workspace — ลงคาบ วิชา ห้องเรียน ได้เอง"
+          />
         </div>
       </div>
 

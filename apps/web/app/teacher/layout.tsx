@@ -7,6 +7,7 @@ const NAV = [
   { href: '/teacher', label: 'ภาพรวม' },
   { href: '/teacher/classrooms', label: 'ห้องเรียนของฉัน' },
   { href: '/teacher/courses', label: 'วิชาเรียน' },
+  { href: '/teacher/schedule', label: 'ตารางสอน' },
   { href: '/teacher/terms', label: 'ภาคเรียน' },
 ];
 
