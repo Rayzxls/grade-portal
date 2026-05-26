@@ -9,6 +9,9 @@ import {
   assignStudentToClassroomSchema,
   bulkEnrollClassroomSchema,
   bulkAddStudentsSchema,
+  bulkImportTeachersSchema,
+  bulkImportStudentsSchema,
+  bulkImportClassroomsSchema,
   type CreateUserDto,
   type CreateCourseDto,
   type CreateTermDto,
@@ -17,6 +20,9 @@ import {
   type AssignStudentToClassroomDto,
   type BulkEnrollClassroomDto,
   type BulkAddStudentsDto,
+  type BulkImportTeachersDto,
+  type BulkImportStudentsDto,
+  type BulkImportClassroomsDto,
 } from '@grade/shared';
 import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -30,6 +36,7 @@ import { AssignStudentToClassroomUseCase } from '../application/assign-student.u
 import { BulkEnrollClassroomUseCase } from '../application/bulk-enroll-classroom.use-case';
 import { ListResourcesUseCase } from '../application/list-resources.use-case';
 import { BulkAddStudentsUseCase } from '../../teacher/application/bulk-add-students.use-case';
+import { BulkImportUseCase } from '../application/bulk-import.use-case';
 import { CurrentUser, AuthenticatedUser } from '../../../common/decorators/current-user.decorator';
 
 @Controller('admin')
@@ -46,7 +53,33 @@ export class AdminController {
     private bulkEnroll: BulkEnrollClassroomUseCase,
     private bulkAddStudents: BulkAddStudentsUseCase,
     private list: ListResourcesUseCase,
+    private bulkImport: BulkImportUseCase,
   ) {}
+
+  // ─── Bulk import — สำหรับโรงเรียนใหญ่ ───
+  @Post('bulk/teachers')
+  importTeachers(
+    @Body(new ZodValidationPipe(bulkImportTeachersSchema)) dto: BulkImportTeachersDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.bulkImport.importTeachers(dto, user.id);
+  }
+
+  @Post('bulk/students')
+  importStudents(
+    @Body(new ZodValidationPipe(bulkImportStudentsSchema)) dto: BulkImportStudentsDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.bulkImport.importStudents(dto, user.id);
+  }
+
+  @Post('bulk/classrooms')
+  importClassrooms(
+    @Body(new ZodValidationPipe(bulkImportClassroomsSchema)) dto: BulkImportClassroomsDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.bulkImport.importClassrooms(dto, user.id);
+  }
 
   // ------- LIST -------
   @Get('users')        users()        { return this.list.listUsers(); }

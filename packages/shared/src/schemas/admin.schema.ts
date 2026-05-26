@@ -24,6 +24,51 @@ export const createUserSchema = z.object({
 });
 export type CreateUserDto = z.infer<typeof createUserSchema>;
 
+// ─── Bulk import (สำหรับโรงเรียนใหญ่) ───
+// ครู — รับ array ของครู (default password = password123)
+export const bulkImportTeachersSchema = z.object({
+  teachers: z.array(z.object({
+    fullName: z.string().min(1),
+    email: z.string().email(),
+    staffCode: z.string().min(1),
+    department: z.string().min(1).default('ทั่วไป'),
+    password: z.string().min(8).optional(),
+  })).min(1).max(500),
+});
+export type BulkImportTeachersDto = z.infer<typeof bulkImportTeachersSchema>;
+
+// นักเรียน — รับ array + auto-create/match classroom by (gradeLevel, section, academicYear)
+export const bulkImportStudentsSchema = z.object({
+  students: z.array(z.object({
+    fullName: z.string().min(1),
+    studentCode: z.string().min(1),
+    gradeLevel: z.enum(GRADE_LEVELS).optional(),
+    section: z.number().int().min(1).max(99).optional(),
+    academicYear: z.number().int().min(2500).max(2600).optional(),
+    enrollYear: z.number().int().min(2500).max(2600).optional(),
+    email: z.string().email().optional(),
+    password: z.string().min(8).optional(),
+  })).min(1).max(2000),
+  // ถ้าไม่ใส่ gradeLevel/section ใน row ใช้ค่า default นี้
+  defaultClassroom: z.object({
+    gradeLevel: z.enum(GRADE_LEVELS),
+    section: z.number().int().min(1).max(99),
+    academicYear: z.number().int().min(2500).max(2600),
+  }).optional(),
+});
+export type BulkImportStudentsDto = z.infer<typeof bulkImportStudentsSchema>;
+
+// ห้องเรียน
+export const bulkImportClassroomsSchema = z.object({
+  classrooms: z.array(z.object({
+    gradeLevel: z.enum(GRADE_LEVELS),
+    section: z.number().int().min(1).max(99),
+    academicYear: z.number().int().min(2500).max(2600),
+    homeroomTeacherEmail: z.string().email().optional(),
+  })).min(1).max(200),
+});
+export type BulkImportClassroomsDto = z.infer<typeof bulkImportClassroomsSchema>;
+
 export const createCourseSchema = z.object({
   code: z.string().min(2),
   name: z.string().min(1),

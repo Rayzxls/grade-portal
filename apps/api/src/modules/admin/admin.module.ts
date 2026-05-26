@@ -9,6 +9,7 @@ import { AssignStudentToClassroomUseCase } from './application/assign-student.us
 import { BulkEnrollClassroomUseCase } from './application/bulk-enroll-classroom.use-case';
 import { ListResourcesUseCase } from './application/list-resources.use-case';
 import { BulkAddStudentsUseCase } from '../teacher/application/bulk-add-students.use-case';
+import { BulkImportUseCase } from './application/bulk-import.use-case';
 
 @Module({
   controllers: [AdminController],
@@ -22,6 +23,7 @@ import { BulkAddStudentsUseCase } from '../teacher/application/bulk-add-students
     BulkEnrollClassroomUseCase,
     BulkAddStudentsUseCase,
     ListResourcesUseCase,
+    BulkImportUseCase,
   ],
 })
 export class AdminModule {}

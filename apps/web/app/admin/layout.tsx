@@ -8,6 +8,7 @@ import { PrintButton } from '@/components/ui/PrintButton';
 const NAV = [
   { href: '/admin', label: 'ภาพรวม' },
   { href: '/admin/setup', label: '🚀 Setup' },
+  { href: '/admin/import', label: '📥 Bulk Import' },
   { href: '/admin/students', label: 'นักเรียน' },
   { href: '/admin/classrooms', label: 'ห้องเรียน' },
   { href: '/admin/users', label: 'ผู้ใช้' },

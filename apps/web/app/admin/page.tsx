@@ -59,17 +59,20 @@ export default function AdminHome() {
         <p className="mt-1 text-sm text-ink-soft">บริหารระบบเกรดทั้งหมด — เริ่มจาก Quick Setup ถ้ายังไม่เคยตั้ง</p>
       </div>
 
-      {/* CTA: Quick Setup */}
+      {/* CTA: Quick Setup or Bulk Import */}
       {!isReady && (
-        <Tilt3D max={5} scale={1.005}>
-          <Link href="/admin/setup" className="block card relative overflow-hidden p-6 sheen border-amber-300 bg-gradient-to-br from-amber-50/50 to-white">
-            <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-30 blur-3xl"
-                 style={{ background: 'radial-gradient(circle, #fde68a 0%, transparent 60%)' }} />
-            <div className="relative z-10 flex items-center gap-4">
-              <div className="text-5xl animate-float">🚀</div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold tracking-tight text-ink">เริ่มต้นใช้งานด่วน (Quick Setup)</h3>
-                <p className="text-sm text-ink-soft mt-1">สร้าง เทอม → ครู → ห้องเรียน → วิชา → นักเรียน ในขั้นตอนเดียว</p>
+        <div className="grid gap-3 md:grid-cols-2">
+          <Tilt3D max={5} scale={1.005}>
+            <Link href="/admin/setup" className="block card relative overflow-hidden p-6 sheen border-amber-300 bg-gradient-to-br from-amber-50/50 to-white h-full">
+              <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-30 blur-3xl"
+                   style={{ background: 'radial-gradient(circle, #fde68a 0%, transparent 60%)' }} />
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-4xl animate-float">🚀</span>
+                  <span className="badge badge-gold">โรงเรียนเล็ก</span>
+                </div>
+                <h3 className="text-lg font-bold tracking-tight text-ink">Quick Setup</h3>
+                <p className="text-sm text-ink-soft mt-1">สร้างทีละขั้น — เหมาะกับเริ่มต้นหรือทดลองระบบ</p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {stepsDone.map((s) => (
                     <span key={s.name} className={`badge ${s.done ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200'}`}>
@@ -78,10 +81,25 @@ export default function AdminHome() {
                   ))}
                 </div>
               </div>
-              <span className="text-3xl text-ink-soft">→</span>
-            </div>
-          </Link>
-        </Tilt3D>
+            </Link>
+          </Tilt3D>
+
+          <Tilt3D max={5} scale={1.005}>
+            <Link href="/admin/import" className="block card relative overflow-hidden p-6 sheen border-blue-300 bg-gradient-to-br from-blue-50/40 to-white h-full">
+              <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-30 blur-3xl"
+                   style={{ background: 'radial-gradient(circle, #93c5fd 0%, transparent 60%)' }} />
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-4xl animate-float">📥</span>
+                  <span className="badge bg-blue-50 text-blue-700 ring-1 ring-blue-200">โรงเรียนใหญ่</span>
+                </div>
+                <h3 className="text-lg font-bold tracking-tight text-ink">Bulk Import จาก Excel</h3>
+                <p className="text-sm text-ink-soft mt-1">วางจาก Excel/CSV — ครู 100 คน + นักเรียน 1,000 คน ใช้เวลา 30 วินาที</p>
+                <p className="text-xs text-blue-700 mt-2 font-semibold">ระบบสร้างห้องเรียนให้อัตโนมัติจากข้อมูล →</p>
+              </div>
+            </Link>
+          </Tilt3D>
+        </div>
       )}
 
       {isReady && (
@@ -111,6 +129,7 @@ export default function AdminHome() {
       <div>
         <h3 className="text-sm font-bold uppercase tracking-wider text-ink-soft mb-3">เมนูจัดการ</h3>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <NavCard href="/admin/import" icon="📥" title="Bulk Import" desc="วางจาก Excel — ครู/นักเรียน/ห้อง ทีเดียวจบ" />
           <NavCard href="/admin/students" icon="🎓" title="รายชื่อนักเรียน" desc="ค้นหา + ดูเกรด GPA ของแต่ละคน" />
           <NavCard href="/admin/users" icon="👥" title="ผู้ใช้ทั้งหมด" desc="จัดการ admin / ครู / นักเรียน" />
           <NavCard href="/admin/classrooms" icon="🏫" title="ห้องเรียน" desc="ห้อง + ครูประจำชั้น" />
