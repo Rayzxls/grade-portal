@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { PrintButton } from '@/components/ui/PrintButton';
 
 const NAV = [
   { href: '/admin', label: 'ภาพรวม' },
   { href: '/admin/users', label: 'ผู้ใช้' },
+  { href: '/admin/students', label: 'นักเรียน' },
   { href: '/admin/classrooms', label: 'ห้องเรียน' },
   { href: '/admin/courses', label: 'รายวิชา' },
   { href: '/admin/terms', label: 'ปีการศึกษา' },
@@ -25,13 +27,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur-md">
+      <header className="print-hide sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <div className="flex items-center gap-3">
             <span className="badge-gold">Admin</span>
             <h1 className="font-semibold tracking-tight">Grade Portal</h1>
           </div>
-          <button onClick={logout} className="btn-ghost btn-sm">ออกจากระบบ</button>
+          <div className="flex items-center gap-2">
+            <PrintButton />
+            <button onClick={logout} className="btn-ghost btn-sm">ออกจากระบบ</button>
+          </div>
         </div>
         <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-6 pb-2">
           {NAV.map((n) => {
