@@ -50,6 +50,7 @@ import { ClassroomWorkspaceUseCase } from '../application/classroom-workspace.us
 import { ScoreSheetUseCase } from '../application/score-sheet.use-case';
 import { TeacherCrudUseCase } from '../application/crud.use-case';
 import { ScheduleUseCase } from '../application/schedule.use-case';
+import { OfferingsUseCase } from '../application/offerings.use-case';
 
 @Controller('teacher')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -64,7 +65,19 @@ export class TeacherController {
     private sheets: ScoreSheetUseCase,
     private crud: TeacherCrudUseCase,
     private schedule: ScheduleUseCase,
+    private offerings: OfferingsUseCase,
   ) {}
+
+  // ─── SubjectOffering: "ครู+วิชา+ห้อง+เทอม" เป็นตัวเดียวกัน ───
+  @Get('offerings')
+  myOfferings(@Query('termId') termId: string | undefined, @CurrentUser() user: AuthenticatedUser) {
+    return this.offerings.listMine(user.id, { termId });
+  }
+
+  @Get('offerings/:id')
+  offeringDetail(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.offerings.getDetail(id, user.id);
+  }
 
   // ---------- Schedule (Workspace) ----------
   @Get('schedule/settings')

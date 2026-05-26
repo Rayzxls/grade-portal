@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ROLES } from '../types/role';
+import { ROLES, GRADE_LEVELS } from '../types/role';
 
 export const createUserSchema = z.object({
   email: z.string().email(),
@@ -28,13 +28,13 @@ export const createCourseSchema = z.object({
   code: z.string().min(2),
   name: z.string().min(1),
   credits: z.number().int().min(1).max(6),
-  gradeLevel: z.string().min(1), // เช่น "ม.4"
+  gradeLevel: z.enum(GRADE_LEVELS),
   teacherId: z.string().cuid(),
 });
 export type CreateCourseDto = z.infer<typeof createCourseSchema>;
 
 export const createClassroomSchema = z.object({
-  gradeLevel: z.string().min(1),
+  gradeLevel: z.enum(GRADE_LEVELS),
   section: z.number().int().min(1).max(99),
   academicYear: z.number().int().min(2500).max(2600),
   homeroomTeacherId: z.string().cuid().optional(),
@@ -49,7 +49,7 @@ export type AssignStudentToClassroomDto = z.infer<typeof assignStudentToClassroo
 
 // Teacher สร้างห้อง — homeroomTeacherId จะถูกตั้งเป็น userId ของผู้สร้างใน controller
 export const teacherCreateClassroomSchema = z.object({
-  gradeLevel: z.string().min(1),
+  gradeLevel: z.enum(GRADE_LEVELS),
   section: z.number().int().min(1).max(99),
   academicYear: z.number().int().min(2500).max(2600),
 });
@@ -60,7 +60,7 @@ export const teacherCreateCourseSchema = z.object({
   code: z.string().min(2),
   name: z.string().min(1),
   credits: z.number().int().min(1).max(6),
-  gradeLevel: z.string().min(1),
+  gradeLevel: z.enum(GRADE_LEVELS),
 });
 export type TeacherCreateCourseDto = z.infer<typeof teacherCreateCourseSchema>;
 
@@ -77,7 +77,7 @@ export const bulkAddStudentsSchema = z.object({
       }),
     )
     .min(1)
-    .max(100),
+    .max(1000),
 });
 export type BulkAddStudentsDto = z.infer<typeof bulkAddStudentsSchema>;
 
@@ -90,7 +90,7 @@ export type AddSubjectToClassroomDto = z.infer<typeof addSubjectToClassroomSchem
 
 // Update DTOs
 export const updateClassroomSchema = z.object({
-  gradeLevel: z.string().min(1).optional(),
+  gradeLevel: z.enum(GRADE_LEVELS).optional(),
   section: z.number().int().min(1).max(99).optional(),
   academicYear: z.number().int().min(2500).max(2600).optional(),
 });
@@ -100,7 +100,7 @@ export const updateCourseSchema = z.object({
   code: z.string().min(2).optional(),
   name: z.string().min(1).optional(),
   credits: z.number().int().min(1).max(6).optional(),
-  gradeLevel: z.string().min(1).optional(),
+  gradeLevel: z.enum(GRADE_LEVELS).optional(),
 });
 export type UpdateCourseDto = z.infer<typeof updateCourseSchema>;
 

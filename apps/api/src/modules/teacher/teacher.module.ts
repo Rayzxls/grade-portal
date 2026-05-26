@@ -8,6 +8,7 @@ import { ClassroomWorkspaceUseCase } from './application/classroom-workspace.use
 import { ScoreSheetUseCase } from './application/score-sheet.use-case';
 import { TeacherCrudUseCase } from './application/crud.use-case';
 import { ScheduleUseCase } from './application/schedule.use-case';
+import { OfferingsUseCase } from './application/offerings.use-case';
 
 @Module({
   controllers: [TeacherController],
@@ -20,6 +21,7 @@ import { ScheduleUseCase } from './application/schedule.use-case';
     ScoreSheetUseCase,
     TeacherCrudUseCase,
     ScheduleUseCase,
+    OfferingsUseCase,
   ],
 })
 export class TeacherModule {}

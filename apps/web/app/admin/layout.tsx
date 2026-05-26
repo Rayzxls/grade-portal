@@ -4,16 +4,14 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { PrintButton } from '@/components/ui/PrintButton';
 
+// Admin nav — 5 menu หลัก (ลบ courses/terms/enrollments — รวมใน Setup wizard)
 const NAV = [
   { href: '/admin', label: 'ภาพรวม' },
-  { href: '/admin/setup', label: '🚀 Quick Setup' },
-  { href: '/admin/users', label: 'ผู้ใช้' },
+  { href: '/admin/setup', label: '🚀 Setup' },
   { href: '/admin/students', label: 'นักเรียน' },
   { href: '/admin/classrooms', label: 'ห้องเรียน' },
-  { href: '/admin/courses', label: 'รายวิชา' },
-  { href: '/admin/terms', label: 'ปีการศึกษา' },
-  { href: '/admin/enrollments', label: 'การลงทะเบียน' },
-  { href: '/admin/audit', label: 'Audit Log' },
+  { href: '/admin/users', label: 'ผู้ใช้' },
+  { href: '/admin/audit', label: 'Audit' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

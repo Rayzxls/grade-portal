@@ -4,13 +4,12 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { PrintButton } from '@/components/ui/PrintButton';
 
+// Teacher nav — 4 menu หลัก
 const NAV = [
   { href: '/teacher', label: 'ภาพรวม' },
-  { href: '/teacher/classrooms', label: 'ห้องเรียนของฉัน' },
-  { href: '/teacher/courses', label: 'วิชาเรียน' },
-  { href: '/teacher/grade-entry', label: 'บันทึกเกรด' },
+  { href: '/teacher/classrooms', label: 'ห้องของฉัน' },
+  { href: '/teacher/offerings', label: '✏️ วิชาที่สอน' },
   { href: '/teacher/schedule', label: 'ตารางสอน' },
-  { href: '/teacher/terms', label: 'ภาคเรียน' },
 ];
 
 export default function TeacherLayout({ children }: { children: React.ReactNode }) {

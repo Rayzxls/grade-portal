@@ -176,8 +176,7 @@ export default function TeacherHome() {
           <div className="mt-3 space-y-3">
             <QuickRow href="/teacher/schedule" icon="🗓" title="ตารางสอน" desc="วางตารางรายสัปดาห์" />
             <QuickRow href="/teacher/classrooms" icon="🏫" title="ห้องเรียนของฉัน" desc="จัดการนักเรียน & เกรด" />
-            <QuickRow href="/teacher/courses" icon="🎓" title="รายวิชา" desc="สร้าง/แก้ไขวิชาที่สอน" />
-            <QuickRow href="/teacher/terms" icon="📅" title="ภาคเรียน" desc="ตั้งค่าปีการศึกษา" />
+            <QuickRow href="/teacher/offerings" icon="✏️" title="วิชาที่ฉันสอน" desc="กรอกคะแนน 4 หมวด → auto-grade" />
           </div>
         </div>
       </section>
@@ -194,7 +193,7 @@ export default function TeacherHome() {
               </div>
               <h3 className="text-xl font-bold tracking-tight text-ink mb-4">3 ขั้นตอนเตรียมระบบให้พร้อมสอน</h3>
               <div className="grid gap-6 md:grid-cols-3">
-                <Step n={1} title="ตั้งค่าภาคเรียน" desc="กำหนดปีการศึกษาและช่วงเทอม" href="/teacher/terms" />
+                <Step n={1} title="ดูห้องของฉัน" desc="เห็นห้องที่เป็นครูประจำชั้น + ห้องที่สอน" href="/teacher/classrooms" />
                 <Step n={2} title="สร้างห้องเรียน + วิชา" desc="ลงรายวิชา & เพิ่มนักเรียนในหน้าเดียว" href="/teacher/classrooms/new" />
                 <Step n={3} title="กรอกคะแนน & ปิดเล่ม" desc="บันทึกคะแนนแล้ว Finalize ออกเกรดอัตโนมัติ" href="/teacher/classrooms" />
               </div>
