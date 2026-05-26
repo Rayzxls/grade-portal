@@ -208,7 +208,8 @@ export class ScoreSheetUseCase {
   }
 
   // ปิดเล่ม → คำนวณคะแนนรวม → สร้าง/อัปเดต Grade
-  async finalize(sheetId: string, userId: string) {
+  // force=true จะข้ามการเช็คคะแนนที่ยังไม่ครบ (เซลล์ที่ว่าง = 0)
+  async finalize(sheetId: string, userId: string, force = false) {
     const sheet = await this.assertSheetOwnership(sheetId, userId);
 
     const [columns, entries, enrollments] = await Promise.all([
@@ -220,12 +221,41 @@ export class ScoreSheetUseCase {
           termId: sheet.termId,
           student: { classroomId: sheet.classroomId },
         },
-        include: { grade: true },
+        include: { grade: true, student: { include: { user: true } } },
       }),
     ]);
 
     const maxTotal = columns.reduce((s, c) => s + c.maxScore, 0);
     if (maxTotal <= 0) throw new BadRequestException('คะแนนเต็มรวมเป็น 0 — เพิ่มช่องคะแนนก่อน');
+    if (columns.length === 0) throw new BadRequestException('ยังไม่มีช่องคะแนน');
+    if (enrollments.length === 0) throw new BadRequestException('ไม่มีนักเรียนลงทะเบียนวิชานี้');
+
+    // เช็คว่ามีคะแนนค้าง (cell ที่ value=null) สำหรับทุก (student × column) หรือไม่
+    if (!force) {
+      const filled = new Set(
+        entries.filter((e) => e.value !== null).map((e) => `${e.studentId}|${e.columnId}`),
+      );
+      const missing: { studentName: string; studentCode: string; columnName: string }[] = [];
+      for (const en of enrollments) {
+        for (const col of columns) {
+          if (!filled.has(`${en.studentId}|${col.id}`)) {
+            missing.push({
+              studentName: en.student.user.fullName,
+              studentCode: en.student.studentCode,
+              columnName: col.name,
+            });
+          }
+        }
+      }
+      if (missing.length > 0) {
+        throw new BadRequestException({
+          message: `มีคะแนนที่ยังไม่ได้บันทึก ${missing.length} ช่อง (จากนักเรียน ${new Set(missing.map((m) => m.studentCode)).size} คน)`,
+          missing: missing.slice(0, 10), // ตัวอย่าง 10 รายการแรก
+          missingCount: missing.length,
+          hint: 'กรอกให้ครบ หรือใช้ ?force=true เพื่อปิดเล่มทันที (ช่องว่าง = 0)',
+        });
+      }
+    }
 
     // sum per student
     const sumByStudent = new Map<string, number>();

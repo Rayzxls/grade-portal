@@ -223,8 +223,12 @@ export class TeacherController {
   }
 
   @Post('sheets/:sheetId/finalize')
-  finalize(@Param('sheetId') sheetId: string, @CurrentUser() user: AuthenticatedUser) {
-    return this.sheets.finalize(sheetId, user.id);
+  finalize(
+    @Param('sheetId') sheetId: string,
+    @Query('force') force: string | undefined,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.sheets.finalize(sheetId, user.id, force === 'true' || force === '1');
   }
 
   @Post('sheets/:sheetId/reopen')

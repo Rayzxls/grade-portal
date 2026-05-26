@@ -19,7 +19,19 @@ export interface StudentGradeView {
   score: number;
   letter: GradeLetter;
   gradePoint: number;
-  term: { year: number; semester: string };
+  teacherName: string | null;
+  term: { id: string; year: number; semester: string };
+}
+
+// คาบที่ลงทะเบียนแต่ยังไม่มี Grade (กำลังเรียน / ยังไม่ปิดเล่ม)
+export interface StudentPendingEnrollment {
+  enrollmentId: string;
+  courseCode: string;
+  courseName: string;
+  credits: number;
+  teacherName: string | null;
+  term: { id: string; year: number; semester: string };
+  sheetStatus: 'NO_SHEET' | 'OPEN' | 'FINALIZED';
 }
 
 export interface CreateGradeInput {
@@ -46,6 +58,7 @@ export interface TeacherEnrollmentRow {
 
 export abstract class IGradeRepository {
   abstract findByStudentId(studentId: string): Promise<StudentGradeView[]>;
+  abstract findPendingEnrollments(studentId: string): Promise<StudentPendingEnrollment[]>;
   abstract findById(id: string): Promise<GradeRecord | null>;
   abstract create(input: CreateGradeInput): Promise<GradeRecord>;
   abstract update(id: string, score: number, letter: GradeLetter, gradePoint: number): Promise<GradeRecord>;
