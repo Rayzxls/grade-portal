@@ -135,17 +135,30 @@ export class ClassroomWorkspaceUseCase {
       where: { classroomId },
       select: { id: true },
     });
-    if (students.length === 0) return { totalStudents: 0, created: 0, skipped: 0 };
 
     return this.prisma.$transaction(async (tx) => {
-      const result = await tx.enrollment.createMany({
-        data: students.map((s) => ({
-          studentId: s.id,
-          courseId,
-          termId,
-        })),
-        skipDuplicates: true,
+      // 1. สร้าง SubjectOffering (= ScoreSheet) — เก็บไว้ใน DB ว่า "ห้องนี้กำลังเรียนวิชานี้
+      //    โดยครู X ในเทอม Y" → ครูคนนั้นจะเห็นที่ /teacher/offerings ทันที
+      //    upsert: ถ้ามีอยู่แล้วใช้ของเดิม (idempotent)
+      await tx.scoreSheet.upsert({
+        where: {
+          classroomId_courseId_termId: { classroomId, courseId, termId },
+        },
+        create: {
+          classroomId, courseId, termId,
+          ownerTeacherId: course.teacherId,
+        },
+        update: {},
       });
+
+      // 2. สร้าง enrollments สำหรับนักเรียน (ถ้ามี)
+      const result = students.length > 0
+        ? await tx.enrollment.createMany({
+            data: students.map((s) => ({ studentId: s.id, courseId, termId })),
+            skipDuplicates: true,
+          })
+        : { count: 0 };
+
       await tx.auditLog.create({
         data: {
           actorId: userId,
@@ -153,9 +166,8 @@ export class ClassroomWorkspaceUseCase {
           entityType: 'Classroom',
           entityId: classroomId,
           after: {
-            courseId,
-            termId,
-            created: result.count,
+            courseId, termId,
+            enrollmentsCreated: result.count,
             totalStudents: students.length,
           } as object,
         },
