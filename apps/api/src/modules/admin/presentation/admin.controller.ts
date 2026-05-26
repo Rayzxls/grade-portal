@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
   createUserSchema,
@@ -8,6 +8,7 @@ import {
   createClassroomSchema,
   assignStudentToClassroomSchema,
   bulkEnrollClassroomSchema,
+  bulkAddStudentsSchema,
   type CreateUserDto,
   type CreateCourseDto,
   type CreateTermDto,
@@ -15,6 +16,7 @@ import {
   type CreateClassroomDto,
   type AssignStudentToClassroomDto,
   type BulkEnrollClassroomDto,
+  type BulkAddStudentsDto,
 } from '@grade/shared';
 import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -27,6 +29,7 @@ import { CreateClassroomUseCase } from '../application/create-classroom.use-case
 import { AssignStudentToClassroomUseCase } from '../application/assign-student.use-case';
 import { BulkEnrollClassroomUseCase } from '../application/bulk-enroll-classroom.use-case';
 import { ListResourcesUseCase } from '../application/list-resources.use-case';
+import { BulkAddStudentsUseCase } from '../../teacher/application/bulk-add-students.use-case';
 import { CurrentUser, AuthenticatedUser } from '../../../common/decorators/current-user.decorator';
 
 @Controller('admin')
@@ -41,6 +44,7 @@ export class AdminController {
     private createClassroom: CreateClassroomUseCase,
     private assignStudent: AssignStudentToClassroomUseCase,
     private bulkEnroll: BulkEnrollClassroomUseCase,
+    private bulkAddStudents: BulkAddStudentsUseCase,
     private list: ListResourcesUseCase,
   ) {}
 
@@ -51,6 +55,22 @@ export class AdminController {
   @Get('enrollments')  enrollments()  { return this.list.listEnrollments(); }
   @Get('classrooms')   classrooms()   { return this.list.listClassrooms(); }
   @Get('audit-logs')   auditLogs(): Promise<unknown[]> { return this.list.listAuditLogs(); }
+
+  // นักเรียน — paginated + search
+  @Get('students')
+  students(
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+    @Query('search') search?: string,
+    @Query('classroomId') classroomId?: string,
+  ) {
+    return this.list.listStudents({
+      page: page ? Number(page) : undefined,
+      pageSize: pageSize ? Number(pageSize) : undefined,
+      search,
+      classroomId,
+    });
+  }
 
   // ------- CREATE -------
   @Post('users')
@@ -89,5 +109,13 @@ export class AdminController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.bulkEnroll.execute(dto, user.id);
+  }
+
+  @Post('students/bulk')
+  bulkStudents(
+    @Body(new ZodValidationPipe(bulkAddStudentsSchema)) dto: BulkAddStudentsDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.bulkAddStudents.execute(dto, user.id);
   }
 }

@@ -28,6 +28,69 @@ export class ListResourcesUseCase {
     });
   }
 
+  /**
+   * รายชื่อนักเรียน — paginated + search
+   * @param opts.page เริ่มที่ 1
+   * @param opts.pageSize default 20, max 100
+   * @param opts.search ค้นชื่อ / รหัสนักเรียน / email
+   * @param opts.classroomId กรอง classroom (optional)
+   */
+  async listStudents(opts: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    classroomId?: string;
+  } = {}) {
+    const page = Math.max(1, opts.page ?? 1);
+    const pageSize = Math.min(100, Math.max(1, opts.pageSize ?? 20));
+    const search = opts.search?.trim();
+
+    const where: any = {};
+    if (opts.classroomId) where.classroomId = opts.classroomId;
+    if (search) {
+      where.OR = [
+        { studentCode: { contains: search, mode: 'insensitive' } },
+        { user: { fullName: { contains: search, mode: 'insensitive' } } },
+        { user: { email: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.student.findMany({
+        where,
+        include: {
+          user: { select: { fullName: true, email: true } },
+          classroom: { select: { gradeLevel: true, section: true, academicYear: true } },
+          _count: { select: { grades: true, enrollments: true } },
+        },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: [{ classroom: { gradeLevel: 'asc' } }, { studentCode: 'asc' }],
+      }),
+      this.prisma.student.count({ where }),
+    ]);
+
+    return {
+      page,
+      pageSize,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+      items: items.map((s) => ({
+        id: s.id,
+        studentCode: s.studentCode,
+        fullName: s.user.fullName,
+        email: s.user.email,
+        enrollYear: s.enrollYear,
+        classroom: s.classroom
+          ? `${s.classroom.gradeLevel}/${s.classroom.section}`
+          : null,
+        academicYear: s.classroom?.academicYear ?? null,
+        gradeCount: s._count.grades,
+        enrollmentCount: s._count.enrollments,
+      })),
+    };
+  }
+
   listClassrooms() {
     return this.prisma.classroom.findMany({
       include: {

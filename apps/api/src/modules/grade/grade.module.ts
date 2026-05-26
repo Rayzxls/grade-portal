@@ -4,6 +4,8 @@ import { GetMyGradesUseCase } from './application/get-my-grades.use-case';
 import { RecordGradeUseCase } from './application/record-grade.use-case';
 import { UpdateGradeUseCase } from './application/update-grade.use-case';
 import { ListTeacherEnrollmentsUseCase } from './application/list-teacher-enrollments.use-case';
+import { UpsertGradeBucketsUseCase } from './application/upsert-grade-buckets.use-case';
+import { GetStudentGradesUseCase } from './application/get-student-grades.use-case';
 import { IGradeRepository } from './domain/grade-repository.interface';
 import { PrismaGradeRepository } from './infrastructure/grade.repository';
 
@@ -14,6 +16,8 @@ import { PrismaGradeRepository } from './infrastructure/grade.repository';
     RecordGradeUseCase,
     UpdateGradeUseCase,
     ListTeacherEnrollmentsUseCase,
+    UpsertGradeBucketsUseCase,
+    GetStudentGradesUseCase,
     { provide: IGradeRepository, useClass: PrismaGradeRepository },
   ],
 })

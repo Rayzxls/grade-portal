@@ -12,6 +12,19 @@ export const updateGradeSchema = z.object({
 });
 export type UpdateGradeDto = z.infer<typeof updateGradeSchema>;
 
+// สเปคโรงเรียน: บันทึกคะแนนแบบ 4 หมวด → ระบบคำนวณ total/letter/gpa อัตโนมัติ
+// quiz(20%) + homework(20%) + midterm(30%) + final(30%)
+export const upsertGradeBucketsSchema = z.object({
+  studentId: z.string().cuid(),
+  courseId: z.string().cuid(),
+  termId: z.string().cuid(),
+  quizScore: z.number().min(0).max(100).nullable().optional(),
+  homeworkScore: z.number().min(0).max(100).nullable().optional(),
+  midtermScore: z.number().min(0).max(100).nullable().optional(),
+  finalScore: z.number().min(0).max(100).nullable().optional(),
+});
+export type UpsertGradeBucketsDto = z.infer<typeof upsertGradeBucketsSchema>;
+
 export const gradeResponseSchema = z.object({
   id: z.string(),
   courseCode: z.string(),

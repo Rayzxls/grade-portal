@@ -171,15 +171,20 @@ model Enrollment {
 }
 
 model Grade {
-  id           String      @id @default(cuid())
-  enrollmentId String      @unique
-  studentId    String // denormalized เพื่อ query เร็ว
-  score        Float // 0-100
-  letter       GradeLetter
-  gradePoint   Float // 4.0, 3.5, 3.0 ...
-  recordedById String // teacher user id
-  recordedAt   DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id            String      @id @default(cuid())
+  enrollmentId  String      @unique
+  studentId     String // denormalized เพื่อ query เร็ว
+  // คะแนนแยกตามหมวด (สเปคโรงเรียน): quiz(20%) + HW(20%) + mid(30%) + final(30%)
+  quizScore     Float? // 0-100
+  homeworkScore Float? // 0-100
+  midtermScore  Float? // 0-100
+  finalScore    Float? // 0-100
+  score         Float // totalScore 0-100 (คำนวณจาก weighted sum หรือ legacy)
+  letter        GradeLetter
+  gradePoint    Float // 4.0, 3.5, 3.0 ...
+  recordedById  String // teacher user id
+  recordedAt    DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
