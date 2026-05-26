@@ -66,4 +66,15 @@ export class ListMyResourcesUseCase {
       orderBy: [{ gradeLevel: 'asc' }, { code: 'asc' }],
     });
   }
+
+  // วิชาทั้งหมดในระบบที่ตรงกับชั้น (ใช้สำหรับครูประจำชั้นเลือกเปิดสอนในห้องนี้)
+  async listAvailableCoursesForGrade(gradeLevel: string) {
+    return this.prisma.course.findMany({
+      where: { gradeLevel },
+      include: {
+        teacher: { include: { user: { select: { fullName: true } } } },
+      },
+      orderBy: [{ code: 'asc' }],
+    });
+  }
 }

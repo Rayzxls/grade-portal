@@ -304,6 +304,12 @@ export class TeacherController {
     return this.listMy.listMyCourses(user.id);
   }
 
+  // ทุกวิชาในระบบที่ตรงกับชั้น (สำหรับครูประจำชั้นเลือกเปิดสอน)
+  @Get('available-courses')
+  availableCourses(@Query('gradeLevel') gradeLevel: string) {
+    return this.listMy.listAvailableCoursesForGrade(gradeLevel);
+  }
+
   @Post('classrooms')
   newClassroom(
     @Body(new ZodValidationPipe(teacherCreateClassroomSchema)) dto: TeacherCreateClassroomDto,

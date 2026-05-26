@@ -20,6 +20,7 @@ interface MyCourse {
   name: string;
   credits: number;
   gradeLevel: string;
+  teacher?: { user?: { fullName?: string } } | null;
 }
 
 const GRADE_LEVELS = ['ป.1','ป.2','ป.3','ป.4','ป.5','ป.6','ม.1','ม.2','ม.3','ม.4','ม.5','ม.6'];
@@ -41,10 +42,11 @@ export function SubjectsTab({
   async function load() {
     const [subs, courses] = await Promise.all([
       api.get<Subject[]>(`/teacher/classrooms/${classroomId}/subjects?termId=${termId}`),
-      api.get<MyCourse[]>('/teacher/courses'),
+      // ดึง "วิชาทุกตัวในระบบที่ตรงกับชั้น" — ครูประจำชั้นเลือกเปิดสอนได้แม้ไม่ได้สร้างเอง
+      api.get<MyCourse[]>(`/teacher/available-courses?gradeLevel=${encodeURIComponent(gradeLevel)}`),
     ]);
     setSubjects(subs);
-    setMyCourses(courses.filter((c) => c.gradeLevel === gradeLevel));
+    setMyCourses(courses);
   }
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [classroomId, termId]);
@@ -256,7 +258,10 @@ export function SubjectsTab({
                 >
                   <option value="">-- เลือกวิชาในระบบ (ชั้น {gradeLevel}) --</option>
                   {availableCourses.map((c) => (
-                    <option key={c.id} value={c.id}>{c.code} · {c.name} ({c.credits} หน่วยกิต)</option>
+                    <option key={c.id} value={c.id}>
+                      {c.code} · {c.name} ({c.credits} หน่วยกิต)
+                      {c.teacher?.user?.fullName ? ` — โดย ${c.teacher.user.fullName}` : ''}
+                    </option>
                   ))}
                 </select>
                 <button 
@@ -271,15 +276,15 @@ export function SubjectsTab({
             
             <div className="mt-4">
               {availableCourses.length === 0 && myCourses.length > 0 && (
-                <div className="p-3 bg-amber-50/40 rounded-xl border border-amber-200/30 text-xs text-amber-800 flex items-center gap-2">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-amber-800 text-[10px] font-bold font-serif">✓</span>
-                  <span>ทุกวิชาในสังกัดระดับชั้นของคุณถูกเพิ่มเข้ามาลงทะเบียนในห้องนี้เรียบร้อยแล้ว</span>
+                <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200/50 text-xs text-emerald-800 flex items-center gap-2">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-[10px] font-bold">✓</span>
+                  <span>วิชาทั้งหมดในระบบสำหรับชั้น {gradeLevel} ถูกเปิดสอนในห้องนี้ครบแล้ว — สร้างวิชาใหม่ด้านขวาเพื่อเพิ่ม</span>
                 </div>
               )}
               {myCourses.length === 0 && (
                 <div className="p-3 bg-amber-50/40 rounded-xl border border-amber-200/30 text-xs text-amber-800 flex items-center gap-2">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-amber-800 text-[10px] font-bold font-serif">!</span>
-                  <span>คุณยังไม่มีรายวิชาในระบบสำหรับการสอนระดับชั้นนี้ กดปุ่มสร้างรหัสวิชาเรียนใหม่ทางด้านขวาเพื่อเริ่มต้น</span>
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-amber-800 text-[10px] font-bold">!</span>
+                  <span>ยังไม่มีวิชาในระบบสำหรับชั้น {gradeLevel} — กดปุ่มสร้างรหัสวิชาใหม่ทางด้านขวาเพื่อเริ่มต้น</span>
                 </div>
               )}
             </div>
