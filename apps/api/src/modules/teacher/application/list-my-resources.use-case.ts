@@ -14,8 +14,15 @@ export class ListMyResourcesUseCase {
   async listMyClassrooms(userId: string) {
     const teacherId = await this.teacherIdOf(userId);
     if (!teacherId) return []; // admin or non-teacher: empty list
-    return this.prisma.classroom.findMany({
-      where: { homeroomTeacherId: teacherId },
+    // ห้อง "ของฉัน" = ห้องที่เป็นครูประจำชั้น (homeroom)
+    //               + ห้องที่มีสมุดคะแนนของวิชาที่ฉันสอน (= ห้องที่ฉันสอน)
+    const rooms = await this.prisma.classroom.findMany({
+      where: {
+        OR: [
+          { homeroomTeacherId: teacherId },
+          { scoreSheets: { some: { ownerTeacherId: teacherId } } },
+        ],
+      },
       include: {
         _count: { select: { students: true } },
         students: {
@@ -25,9 +32,29 @@ export class ListMyResourcesUseCase {
           },
           orderBy: { studentCode: 'asc' },
         },
+        scoreSheets: {
+          where: { ownerTeacherId: teacherId },
+          select: {
+            id: true,
+            finalizedAt: true,
+            course: { select: { id: true, code: true, name: true } },
+            term: { select: { id: true, year: true, semester: true } },
+          },
+        },
       },
       orderBy: [{ academicYear: 'desc' }, { gradeLevel: 'asc' }, { section: 'asc' }],
     });
+    // เพิ่ม flag ระบุบทบาทในแต่ละห้อง
+    return rooms.map((r) => ({
+      ...r,
+      role: r.homeroomTeacherId === teacherId ? 'HOMEROOM' : 'SUBJECT_TEACHER',
+      mySubjects: r.scoreSheets.map((s) => ({
+        sheetId: s.id,
+        finalized: !!s.finalizedAt,
+        course: s.course,
+        term: s.term,
+      })),
+    }));
   }
 
   async listMyCourses(userId: string) {
